@@ -1,9 +1,12 @@
 package dev.quozul.UHC;
 
 import org.bukkit.*;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -19,8 +22,10 @@ public class GameListeners implements Listener {
         Player player = e.getPlayer();
 
         // Remove slow falling when player reach the ground
-        if (player.getScoreboardTags().contains("spawning") && player.isOnGround())
+        if (player.getScoreboardTags().contains("spawning") && player.isOnGround()) {
             player.removePotionEffect(PotionEffectType.SLOW_FALLING);
+            player.removeScoreboardTag("spawning");
+        }
     }
 
     @EventHandler
@@ -79,5 +84,17 @@ public class GameListeners implements Listener {
 
         if (e.getFrom().getWorld().getName().equals(Game.worldName + "_nether"))
             e.getTo().setWorld(Bukkit.getWorld(Game.worldName));
+    }
+
+    @EventHandler
+    public void onPlayerDamage(EntityDamageEvent e) {
+        if (e.getEntityType() == EntityType.PLAYER && ((Player) e.getEntity()).getGameMode() == GameMode.ADVENTURE)
+            e.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onPlayerHunger(FoodLevelChangeEvent e) {
+        if (e.getEntity().getGameMode() == GameMode.ADVENTURE)
+            e.setCancelled(true);
     }
 }

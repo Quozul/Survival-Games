@@ -51,11 +51,17 @@ public class Main extends JavaPlugin {
         this.getCommand("start").setExecutor(new Game());
         this.getCommand("jointeam").setExecutor(new JoinTeam());
         this.getCommand("regenerateworlds").setExecutor(new RegenWorlds());
-        this.getCommand("selectteam").setExecutor(new SelectTeam());
+        //this.getCommand("selectteam").setExecutor(new SelectTeam());
 
-        this.getServer().getPluginManager().registerEvents(new SelectTeam(), this);
+        //this.getServer().getPluginManager().registerEvents(new SelectTeam(), this);
         this.getServer().getPluginManager().registerEvents(new GameListeners(), this);
 
+
+        try {
+            RegenWorlds.generateWorlds();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         createTeams();
 
