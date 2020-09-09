@@ -1,0 +1,23 @@
+name: UHC
+version: 0.1
+author: Quozul
+main: dev.quozul.UHC.Main
+api-version: 1.16
+
+commands:
+  start:
+    description: Start UHC game
+    usage: /start
+    default:
+  jointeam:
+    description: Join UHC team
+    usage: /jointeam [team name]
+    default:
+  selectteam:
+    description: Select team
+    usage: /selectteam
+    default:
+  regenerateworlds:
+    description: Regen UHC worlds
+    usage: /regenerateworlds
+    default:
