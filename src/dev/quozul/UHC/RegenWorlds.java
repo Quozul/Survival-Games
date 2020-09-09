@@ -28,6 +28,10 @@ public class RegenWorlds implements CommandExecutor {
             FileUtils.deleteDirectory(worldFolder);
         }
 
+        generateWorlds(worldName, worldEnvironment);
+    }
+
+    public static void generateWorlds(String worldName, World.Environment worldEnvironment) {
         // Generating worlds
         WorldCreator uhcWorldCreator = new WorldCreator(worldName);
         uhcWorldCreator.environment(worldEnvironment);
@@ -36,6 +40,11 @@ public class RegenWorlds implements CommandExecutor {
     }
 
     public static void regenerateUHCWorlds() throws IOException {
+        regenerateWorld(Game.worldName, World.Environment.NORMAL);
+        regenerateWorld(Game.worldName + "_nether", World.Environment.NETHER);
+    }
+
+    public static void generateWorlds() throws IOException {
         regenerateWorld(Game.worldName, World.Environment.NORMAL);
         regenerateWorld(Game.worldName + "_nether", World.Environment.NETHER);
     }

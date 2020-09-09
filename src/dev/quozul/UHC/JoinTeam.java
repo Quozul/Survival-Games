@@ -18,6 +18,8 @@ public class JoinTeam implements CommandExecutor, TabExecutor {
         List<String> results = new ArrayList<>(Game.teamNames.keySet());
 
         // TODO: Do filtering on results
+        for (String result : results)
+            results.set(results.indexOf(result), result.replace(" ", "_"));
 
         return results;
     }
@@ -27,7 +29,7 @@ public class JoinTeam implements CommandExecutor, TabExecutor {
         if (args.length == 0) return false;
 
         Player player = (Player) commandSender;
-        String teamName = args[0];
+        String teamName = args[0].replace("_", " ");
         Scoreboard scoreboard = player.getScoreboard();
 
         // Get willed team
