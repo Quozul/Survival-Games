@@ -38,8 +38,8 @@ public class Game implements CommandExecutor {
     public static int durationTicks = durationMinutes * 60 * 20;
     // Recommended values: 128, 256, 512, 1024, 2048
     public static int startSize = 1024; // Diameter of the border on start
-    public static int steps = 10; // Border decrease steps
-    public static int borderDecreaseSpeed = 60; // Time for the border to reach the next step in seconds
+    public static int steps = 1; // Border decrease steps
+    public static int borderDecreaseSpeed = durationMinutes * 60; // Time for the border to reach the next step in seconds
     public static int maxDamage = 10; // Max world border damage
     // Create default teams
     public static Map<String, ChatColor> teamNames = new HashMap<>();
@@ -158,12 +158,12 @@ public class Game implements CommandExecutor {
             else
                 infoObjective = board.registerNewObjective("UHCInfo", "dummy", "§6§lUHC");
 
-            Score step = infoObjective.getScore("§7» Etape");
+            /*Score step = infoObjective.getScore("§7» Etape");
             step.setScore(0);
             Score nextBorderRadius = infoObjective.getScore("§7» Prochain rayon");
             nextBorderRadius.setScore(0);
             Score nextBorder = infoObjective.getScore("§7» Prochaine zone (s)");
-            nextBorder.setScore(0);
+            nextBorder.setScore(0);*/
             Score borderRadius = infoObjective.getScore("§7» Rayon");
             borderRadius.setScore(0);
 
@@ -267,14 +267,14 @@ public class Game implements CommandExecutor {
 
             if (newStep) {
                 // World border
-                List<World> worlds = getUHCWorlds();
+                /*List<World> worlds = getUHCWorlds();
 
                 for (World world : worlds) {
                     WorldBorder worldBorder = world.getWorldBorder();
 
                     worldBorder.setSize(currentBorder, borderDecreaseSpeed);
                     worldBorder.setDamageAmount(damageAmount);
-                }
+                }*/
 
                 BossBar bossBar = Bukkit.getServer().getBossBar(new NamespacedKey(Main.plugin, "uhc_progress"));
                 bossBar.setProgress(currentStep / (float)steps);
@@ -294,17 +294,18 @@ public class Game implements CommandExecutor {
 
                 Objective obj = board.getObjective("UHCInfo");
 
-                Score step = obj.getScore("§7» Etape");
+                /*Score step = obj.getScore("§7» Etape");
                 step.setScore(currentStep);
 
                 Score nextBorder = obj.getScore("§7» Prochaine zone (s)");
                 nextBorder.setScore(nextStepCooldown / 20);
 
                 Score nextRadius = obj.getScore("§7» Prochain rayon");
-                nextRadius.setScore(nextBorderDiameter / 2);
+                nextRadius.setScore(nextBorderDiameter / 2);*/
 
+                int currentBorderRadius = (int) Math.floor(player.getWorld().getWorldBorder().getSize() / 2);
                 Score borderRadius = obj.getScore("§7» Rayon");
-                borderRadius.setScore(currentBorder);
+                borderRadius.setScore(currentBorderRadius);
 
                 player.setScoreboard(board);
             }
