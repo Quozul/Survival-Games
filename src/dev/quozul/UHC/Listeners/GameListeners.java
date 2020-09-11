@@ -1,5 +1,8 @@
-package dev.quozul.UHC;
+package dev.quozul.UHC.Listeners;
 
+import dev.quozul.UHC.Commands.StartCommand;
+import dev.quozul.UHC.Events.SurvivalGameEndEvent;
+import dev.quozul.UHC.Main;
 import org.bukkit.*;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -41,10 +44,7 @@ public class GameListeners implements Listener {
             player.getScoreboardTags().add("died");
 
             // Evaluate UHC end
-            if (Game.evaluateUHC()) {
-                Bukkit.getServer().getScheduler().cancelTask(Game.task);
-                Game.finishUHC();
-            }
+            if (StartCommand.game.evaluateUHC()) StartCommand.game.endGame();
 
             if (player.getKiller() != null)
                 player.sendMessage(String.format("§7%s avait %.0f points de vie", player.getKiller().getDisplayName(), Math.ceil(player.getKiller().getHealth())));
@@ -61,7 +61,7 @@ public class GameListeners implements Listener {
             team.removeEntry(player.getName());
 
         // Teleport player to default world
-        World world = Bukkit.getWorld(Game.serverDefaultWorldName);
+        World world = Bukkit.getWorld(Main.plugin.getConfig().getString("server-worldname"));
         Location loc = world.getSpawnLocation();
 
         player.teleport(loc);
@@ -79,11 +79,13 @@ public class GameListeners implements Listener {
 
     @EventHandler
     public void onPlayerPortal(PlayerPortalEvent e) {
-        if (e.getFrom().getWorld().getName().equals(Game.worldName))
-            e.getTo().setWorld(Bukkit.getWorld(Game.worldName + "_nether"));
+        String worldName = Main.plugin.getConfig().getString("game-worldname");
 
-        if (e.getFrom().getWorld().getName().equals(Game.worldName + "_nether"))
-            e.getTo().setWorld(Bukkit.getWorld(Game.worldName));
+        if (e.getFrom().getWorld().getName().equals(worldName))
+            e.getTo().setWorld(Bukkit.getWorld(worldName + "_nether"));
+
+        if (e.getFrom().getWorld().getName().equals(worldName + "_nether"))
+            e.getTo().setWorld(Bukkit.getWorld(worldName));
     }
 
     @EventHandler

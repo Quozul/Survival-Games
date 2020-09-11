@@ -1,0 +1,16 @@
+# Radius of the world border
+border-radius: 2048
+
+# Duration of the game in minutes
+game-duration: 30
+
+# Time before the game starts in seconds
+start-cooldown: 30
+
+# World's name used by the plugin
+# DO NOT use the server's default world name
+game-worldname: 'uhc'
+
+# Server's default world name
+# This is where players will be teleported at the end of a game
+server-worldname: 'world'

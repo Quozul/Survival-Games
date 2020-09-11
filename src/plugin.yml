@@ -1,5 +1,5 @@
 name: UHC
-version: 0.1
+version: 0.2
 author: Quozul
 main: dev.quozul.UHC.Main
 api-version: 1.16
@@ -7,7 +7,7 @@ api-version: 1.16
 commands:
   start:
     description: Start UHC game
-    usage: /start
+    usage: /start <duration> <border radius>
     default:
   jointeam:
     description: Join UHC team

@@ -1,5 +1,6 @@
-package dev.quozul.UHC;
+package dev.quozul.UHC.Commands;
 
+import dev.quozul.UHC.Events.SurvivalGameStartEvent;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -15,7 +16,7 @@ public class JoinTeam implements CommandExecutor, TabExecutor {
 
     @Override
     public List<String> onTabComplete(CommandSender commandSender, Command command, String s, String[] strings) {
-        List<String> results = new ArrayList<>(Game.teamNames.keySet());
+        List<String> results = new ArrayList<>(StartCommand.teamNames.keySet());
 
         // TODO: Do filtering on results
         for (String result : results)

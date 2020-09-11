@@ -1,5 +1,6 @@
-package dev.quozul.UHC;
+package dev.quozul.UHC.Commands;
 
+import dev.quozul.UHC.Main;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -28,25 +29,46 @@ public class RegenWorlds implements CommandExecutor {
             FileUtils.deleteDirectory(worldFolder);
         }
 
-        generateWorlds(worldName, worldEnvironment);
+        generateWorld(worldName, worldEnvironment);
     }
 
-    public static void generateWorlds(String worldName, World.Environment worldEnvironment) {
+    public static void generateWorld(String worldName, World.Environment worldEnvironment) {
         // Generating worlds
         WorldCreator uhcWorldCreator = new WorldCreator(worldName);
         uhcWorldCreator.environment(worldEnvironment);
         uhcWorldCreator.type(WorldType.NORMAL);
-        uhcWorldCreator.createWorld();
+        World world = uhcWorldCreator.createWorld();
+
+        assert world != null;
+        WorldBorder worldBorder = world.getWorldBorder();
+
+        int startSize = Main.plugin.getConfig().getInt("border-radius");
+        worldBorder.setCenter(0, 0);
+        worldBorder.setSize(startSize);
+        worldBorder.setDamageAmount(0);
+        worldBorder.setDamageBuffer(0);
+
+        // Reset time
+        world.setFullTime(0);
+
+        // Set gamerules
+        world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
+        world.setGameRule(GameRule.DO_INSOMNIA, false);
+        world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
     }
 
     public static void regenerateUHCWorlds() throws IOException {
-        regenerateWorld(Game.worldName, World.Environment.NORMAL);
-        regenerateWorld(Game.worldName + "_nether", World.Environment.NETHER);
+        String worldName = Main.plugin.getConfig().getString("game-worldname");
+
+        regenerateWorld(worldName, World.Environment.NORMAL);
+        regenerateWorld(worldName + "_nether", World.Environment.NETHER);
     }
 
     public static void generateWorlds() throws IOException {
-        regenerateWorld(Game.worldName, World.Environment.NORMAL);
-        regenerateWorld(Game.worldName + "_nether", World.Environment.NETHER);
+        String worldName = Main.plugin.getConfig().getString("game-worldname");
+
+        generateWorld(worldName, World.Environment.NORMAL);
+        generateWorld(worldName + "_nether", World.Environment.NETHER);
     }
 
     @Override
