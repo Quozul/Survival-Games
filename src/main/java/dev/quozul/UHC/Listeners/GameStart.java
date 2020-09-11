@@ -1,11 +1,7 @@
 package dev.quozul.UHC.Listeners;
 
-import dev.quozul.UHC.Commands.StartCommand;
 import dev.quozul.UHC.Events.SurvivalGameStartEvent;
 import org.bukkit.*;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarStyle;
-import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -44,13 +40,6 @@ public class GameStart implements Listener {
             world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
         }
 
-        // Create the step progress boss bar
-        BossBar bossBar = Bukkit.getServer().createBossBar(StartCommand.gameProgressBossBarNamespace, "Bordure", BarColor.RED, BarStyle.SEGMENTED_10);
-        bossBar.setVisible(true);
-        bossBar.setProgress(0);
-
-        // TODO: Do a dynamic boss bar displaying different information
-
         // Count teams with at least 1 player
         int filledTeams = 0;
 
@@ -87,9 +76,6 @@ public class GameStart implements Listener {
         }
 
         for (Player player : Bukkit.getServer().getOnlinePlayers()) {
-            // Add bossbar(s) to player
-            bossBar.addPlayer(player);
-
             // Heal player
             player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 20, 255));
             player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 20, 255));
@@ -138,6 +124,5 @@ public class GameStart implements Listener {
             player.addScoreboardTag("playing");
             player.removeScoreboardTag("died");
         }
-
     }
 }

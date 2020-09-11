@@ -21,3 +21,7 @@ commands:
     description: Regen UHC worlds
     usage: /regenerateworlds
     default:
+  spawnchest:
+    description: Spawn a chest where you are
+    usage: /spawnchest
+    default:

@@ -13,39 +13,30 @@ import java.util.Map;
 public class StartCommand implements CommandExecutor {
 
     // Constants
-
     public static NamespacedKey gameProgressBossBarNamespace = new NamespacedKey(Main.plugin, "uhc_progress");
-    //private double circle = Math.PI * 2;
-
-    // Global game variables
-
-    //private static int gameTime; // Game time in UHC in ticks
-
-    // Game parameters
-
-    // TODO: Put this in config file
-    //public static int durationMinutes = 20; // Duration of the UHC game in minutes
-    // Recommended values: 128, 256, 512, 1024, 2048
-    //public static int startSize = 2048; // Diameter of the border on start
-    //public static int maxDamage = 10; // Max world border damage
 
     // Create default teams
     public static Map<String, ChatColor> teamNames = new HashMap<>();
 
-    // Calculated parameters
-    //public static int durationTicks = durationMinutes * 60 * 20;
-
+    // TODO: Change this variable to non-static
     public static SurvivalGame game = null;
-
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] args) {
         if (!commandSender.isOp())
             return false;
 
-        int gameTime = Integer.parseInt(args[0]);
-        game = new SurvivalGame(gameTime, Integer.parseInt(args[1]));
+        int gameTime = Main.plugin.getConfig().getInt("game-duration");
+        int borderRadius = Main.plugin.getConfig().getInt("border-radius");
+
+        if (args.length >= 1)
+            gameTime = Integer.parseInt(args[0]);
+        if (args.length >= 2)
+            borderRadius = Integer.parseInt(args[1]);
+
+        game = new SurvivalGame(gameTime, borderRadius);
 
         return true;
     }
+
 }

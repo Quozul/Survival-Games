@@ -32,12 +32,6 @@ public class GameEnd implements Listener {
         if (winner != null)
             Bukkit.broadcastMessage("§6§lVainqueur : §7" + winner.getDisplayName());
 
-        // Remove bossbar
-        BossBar bossBar = Bukkit.getServer().getBossBar(StartCommand.gameProgressBossBarNamespace);
-        if (bossBar != null)
-            bossBar.removeAll();
-        Bukkit.getServer().removeBossBar(StartCommand.gameProgressBossBarNamespace);
-
         // Teleport players back to spawn after 10 seconds
         Bukkit.getServer().getScheduler().runTaskLater(Main.plugin, () -> {
             for (Player player : Bukkit.getServer().getOnlinePlayers()) {

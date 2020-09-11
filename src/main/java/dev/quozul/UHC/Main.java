@@ -3,17 +3,11 @@ package dev.quozul.UHC;
 import dev.quozul.UHC.Commands.JoinTeam;
 import dev.quozul.UHC.Commands.RegenWorlds;
 import dev.quozul.UHC.Commands.StartCommand;
-import dev.quozul.UHC.Listeners.GameEnd;
-import dev.quozul.UHC.Listeners.GameListeners;
-import dev.quozul.UHC.Listeners.GameStart;
-import dev.quozul.UHC.Listeners.GameTick;
-import org.bukkit.*;
+import dev.quozul.UHC.Commands.SpawnChestCommand;
+import dev.quozul.UHC.Listeners.*;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 
 import java.io.IOException;
-import java.util.List;
 
 public class Main extends JavaPlugin {
 
@@ -64,6 +58,11 @@ public class Main extends JavaPlugin {
         this.getServer().getPluginManager().registerEvents(new GameStart(), this);
         this.getServer().getPluginManager().registerEvents(new GameTick(), this);
         this.getServer().getPluginManager().registerEvents(new GameEnd(), this);
+        this.getServer().getPluginManager().registerEvents(new dev.quozul.UHC.Listeners.SpawnChest(), this);
+        this.getServer().getPluginManager().registerEvents(new GameBossBars(), this);
+
+        this.getCommand("spawnchest").setExecutor(new SpawnChestCommand());
+        this.getServer().getPluginManager().registerEvents(new SpawnChest(), this);
 
         plugin.saveDefaultConfig();
 
