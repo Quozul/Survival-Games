@@ -1,4 +1,4 @@
-package dev.quozul.UHC;
+package dev.quozul.UHC.Commands;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
