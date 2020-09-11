@@ -1,11 +1,11 @@
 package dev.quozul.UHC.Commands;
 
 import dev.quozul.UHC.Main;
+import org.apache.commons.io.FileUtils;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.libs.org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
