@@ -1,6 +1,5 @@
 package dev.quozul.UHC.Commands;
 
-import dev.quozul.UHC.Events.SurvivalGameStartEvent;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
