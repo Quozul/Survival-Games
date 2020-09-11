@@ -44,7 +44,7 @@ public class GameListeners implements Listener {
             player.getScoreboardTags().add("died");
 
             // Evaluate UHC end
-            if (StartCommand.game.evaluateUHC()) StartCommand.game.endGame();
+            if (StartCommand.game.evaluateUHC()) StartCommand.game.endGame(); // TODO: Remove these static variables
 
             if (player.getKiller() != null)
                 player.sendMessage(String.format("§7%s avait %.0f points de vie", player.getKiller().getDisplayName(), Math.ceil(player.getKiller().getHealth())));

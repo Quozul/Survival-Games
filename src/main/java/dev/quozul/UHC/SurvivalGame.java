@@ -19,7 +19,9 @@ public class SurvivalGame {
     private final String defaultWorldName;
 
     private int task;
+    private int startTask;
     private final int interval = 20;
+    private int startTime;
 
     public boolean evaluateUHC() {
         int playersAlive = 0;
@@ -46,17 +48,32 @@ public class SurvivalGame {
         this.worldName = Main.plugin.getConfig().getString("game-worldname");
         this.defaultWorldName = Main.plugin.getConfig().getString("server-worldname");
 
-        Bukkit.getPluginManager().callEvent(new SurvivalGameStartEvent(this));
+        final int startCooldown = Main.plugin.getConfig().getInt("start-cooldown");
+        this.startTime = 0;
 
-        this.task = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(Main.plugin, () -> {
+        this.startTask = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(Main.plugin, () -> {
+            this.startTime++;
 
-            this.gameTime += interval;
+            for (Player player : Bukkit.getServer().getOnlinePlayers())
+                player.sendTitle("§6§lDébut dans", String.format("§7%d secondes", startCooldown - this.startTime), 0, 30, 0);
 
-            Bukkit.getPluginManager().callEvent(new SurvivalGameTickEvent(this));
+            if (this.startTime >= startCooldown) {
+                Bukkit.getPluginManager().callEvent(new SurvivalGameStartEvent(this));
 
-            if (gameTime >= this.gameDuration) {
-                if (evaluateUHC())
-                    this.endGame();
+                this.task = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(Main.plugin, () -> {
+
+                    this.gameTime += interval;
+
+                    Bukkit.getPluginManager().callEvent(new SurvivalGameTickEvent(this));
+
+                    if (this.gameTime >= this.gameDuration) {
+                        if (evaluateUHC())
+                            this.endGame();
+                    }
+
+                }, 0, interval);
+
+                Bukkit.getServer().getScheduler().cancelTask(this.startTask);
             }
 
         }, 0, interval);

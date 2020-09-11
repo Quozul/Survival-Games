@@ -12,13 +12,8 @@ import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 
 public class GameTick implements Listener {
-        @EventHandler
+    @EventHandler
     public void onSurvivalGameTick(SurvivalGameTickEvent e) {
-        double bossBarPercentage = Bukkit.getServer().getWorld(e.getGame().getWorldName()).getWorldBorder().getSize() / (float)e.getGame().getInitialBorderRadius();
-        BossBar bossBar = Bukkit.getServer().getBossBar(StartCommand.gameProgressBossBarNamespace);
-        if (bossBar != null)
-            bossBar.setProgress(bossBarPercentage);
-
         for (Player player : Bukkit.getServer().getOnlinePlayers()) {
             // Update scoreboard
             Scoreboard board = player.getScoreboard();
