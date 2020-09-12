@@ -1,10 +1,12 @@
 package dev.quozul.UHC;
 
+import com.google.common.collect.Lists;
 import dev.quozul.UHC.Events.SurvivalGameEndEvent;
 import dev.quozul.UHC.Events.SurvivalGameStartEvent;
 import dev.quozul.UHC.Events.SurvivalGameTickEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
@@ -54,8 +56,10 @@ public class SurvivalGame {
         this.startTask = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(Main.plugin, () -> {
             this.startTime++;
 
-            for (Player player : Bukkit.getServer().getOnlinePlayers())
+            for (Player player : this.getPlayers()) {
                 player.sendTitle("§6§lDébut dans", String.format("§7%d secondes", startCooldown - this.startTime), 0, 30, 0);
+                player.playSound(player.getLocation(), Sound.BLOCK_DISPENSER_DISPENSE, 1, 1);
+            }
 
             if (this.startTime >= startCooldown) {
                 Bukkit.getPluginManager().callEvent(new SurvivalGameStartEvent(this));
@@ -77,6 +81,10 @@ public class SurvivalGame {
             }
 
         }, 0, interval);
+    }
+
+    public List<Player> getPlayers() {
+        return new ArrayList<>(Bukkit.getOnlinePlayers());
     }
 
     public void endGame() {

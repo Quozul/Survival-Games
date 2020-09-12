@@ -75,7 +75,7 @@ public class GameStart implements Listener {
             }
         }
 
-        for (Player player : Bukkit.getServer().getOnlinePlayers()) {
+        for (Player player : e.getGame().getPlayers()) {
             // Heal player
             player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 20, 255));
             player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 20, 255));

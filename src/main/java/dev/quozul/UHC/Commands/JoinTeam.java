@@ -1,5 +1,6 @@
 package dev.quozul.UHC.Commands;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -8,18 +9,31 @@ import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
+import java.lang.management.BufferPoolMXBean;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 public class JoinTeam implements CommandExecutor, TabExecutor {
 
     @Override
-    public List<String> onTabComplete(CommandSender commandSender, Command command, String s, String[] strings) {
-        List<String> results = new ArrayList<>(StartCommand.teamNames.keySet());
+    public List<String> onTabComplete(CommandSender commandSender, Command command, String s, String[] args) {
+        Player player = (Player) commandSender;
 
-        // TODO: Do filtering on results
-        for (String result : results)
-            results.set(results.indexOf(result), result.replace(" ", "_"));
+        Set<Team> teams = player.getScoreboard().getTeams();
+
+        List<String> results = new ArrayList<>();
+
+        String teamName = String.join(" ", args).toLowerCase();
+
+        for (Team team : teams) {
+            String name = team.getName();
+
+            if (name.toLowerCase().contains(teamName))
+                results.add(name);
+        }
+
 
         return results;
     }
@@ -29,7 +43,7 @@ public class JoinTeam implements CommandExecutor, TabExecutor {
         if (args.length == 0) return false;
 
         Player player = (Player) commandSender;
-        String teamName = args[0].replace("_", " ");
+        String teamName = String.join(" ", args);
         Scoreboard scoreboard = player.getScoreboard();
 
         // Get willed team

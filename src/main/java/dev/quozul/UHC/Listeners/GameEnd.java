@@ -14,11 +14,11 @@ public class GameEnd implements Listener {
     public void onSurvivalGameEnd(SurvivalGameEndEvent e) {
         Player winner = null;
 
-        for (Player player : Bukkit.getServer().getOnlinePlayers()) {
+        for (Player player : e.getGame().getPlayers()) {
             player.setGameMode(GameMode.SPECTATOR);
 
             player.sendTitle("§6Bien joué !", "", 10, 40, 10);
-            player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1, 1);
+            player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_DEATH, 1, 1);
 
             // Get winner
             if (!player.getScoreboardTags().contains("died") && player.getScoreboardTags().contains("playing"))
@@ -34,7 +34,7 @@ public class GameEnd implements Listener {
 
         // Teleport players back to spawn after 10 seconds
         Bukkit.getServer().getScheduler().runTaskLater(Main.plugin, () -> {
-            for (Player player : Bukkit.getServer().getOnlinePlayers()) {
+            for (Player player : e.getGame().getPlayers()) {
                 World world = Bukkit.getWorld(e.getGame().getDefaultWorldName());
                 Location loc = world.getSpawnLocation();
 
