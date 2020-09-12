@@ -1,6 +1,5 @@
 package dev.quozul.UHC.Listeners;
 
-import dev.quozul.UHC.Commands.StartCommand;
 import dev.quozul.UHC.Events.SurvivalGameEndEvent;
 import dev.quozul.UHC.Events.SurvivalGameStartEvent;
 import dev.quozul.UHC.Events.SurvivalGameTickEvent;
@@ -14,6 +13,7 @@ import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerMoveEvent;
 
 public class GameBossBars implements Listener {
     private final NamespacedKey progressBossBarKey = new NamespacedKey(Main.plugin, "uhc_progress");
@@ -25,7 +25,7 @@ public class GameBossBars implements Listener {
         borderBossBar.setVisible(true);
         borderBossBar.setProgress(0);
 
-        for (Player player : Bukkit.getServer().getOnlinePlayers()) {
+        for (Player player : e.getGame().getPlayers()) {
             // Create player bossbar
             BossBar playerBossBar = Bukkit.getServer().createBossBar(new NamespacedKey(Main.plugin, player.getName()), "", BarColor.WHITE, BarStyle.SOLID);
             playerBossBar.setVisible(true);
@@ -50,19 +50,25 @@ public class GameBossBars implements Listener {
             bossBar.setProgress(bossBarPercentage);
             bossBar.setTitle(String.format("Bordure : %.0f", borderRadius));
         }
+    }
 
-        for (Player player : Bukkit.getServer().getOnlinePlayers()) {
-            // Player bossbar
-            BossBar playerBossBar = Bukkit.getServer().getBossBar(new NamespacedKey(Main.plugin, player.getName()));
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent e) {
+        Player player = e.getPlayer();
 
-            if (playerBossBar != null) {
-                Location loc = player.getLocation();
-                playerBossBar.setTitle(String.format("X : %.0f Z : %.0f", loc.getX(), loc.getZ()));
+        // Player bossbar
+        BossBar playerBossBar = Bukkit.getServer().getBossBar(new NamespacedKey(Main.plugin, player.getName()));
 
-                double highestPos = Math.max(Math.abs(loc.getX()), Math.abs(loc.getZ()));
-                double progress = Math.min(Math.max(highestPos / borderRadius, 0), 1);
-                playerBossBar.setProgress(progress);
-            }
+        if (playerBossBar != null) {
+            double borderSize = player.getWorld().getWorldBorder().getSize();
+            double borderRadius = borderSize / 2;
+
+            Location loc = player.getLocation();
+            playerBossBar.setTitle(String.format("X : %.0f Z : %.0f", loc.getX(), loc.getZ()));
+
+            double highestPos = Math.max(Math.abs(loc.getX()), Math.abs(loc.getZ()));
+            double progress = Math.min(Math.max(highestPos / borderRadius, 0), 1);
+            playerBossBar.setProgress(progress);
         }
     }
 
@@ -73,7 +79,7 @@ public class GameBossBars implements Listener {
         if (bossBar != null) bossBar.removeAll();
         Bukkit.getServer().removeBossBar(progressBossBarKey);
 
-        for (Player player : Bukkit.getServer().getOnlinePlayers()) {
+        for (Player player : e.getGame().getPlayers()) {
             // Remove player bossbar
             NamespacedKey playerKey = new NamespacedKey(Main.plugin, player.getName());
 
