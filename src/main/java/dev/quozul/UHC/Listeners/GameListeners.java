@@ -37,6 +37,7 @@ public class GameListeners implements Listener {
 
         if (player.getScoreboardTags().contains("playing")) {
             // Play death sound
+
             player.getWorld().playSound(player.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 1, 1);
             player.setHealth(20);
             player.setGameMode(GameMode.SPECTATOR);

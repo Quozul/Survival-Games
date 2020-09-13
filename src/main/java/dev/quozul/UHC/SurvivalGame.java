@@ -9,6 +9,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.Team;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,11 +57,19 @@ public class SurvivalGame {
         this.startTask = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(Main.plugin, () -> {
             this.startTime++;
 
+            // Add players with teams
+            List<Team> teams = new ArrayList<>(Bukkit.getServer().getScoreboardManager().getMainScoreboard().getTeams());
+            for (Team team : teams)
+                for (String entry : team.getEntries())
+                    Bukkit.getPlayer(entry).addScoreboardTag("playing");
+
+            // Display countdown
             for (Player player : this.getPlayers()) {
                 player.sendTitle("§6§lDébut dans", String.format("§7%d secondes", startCooldown - this.startTime), 0, 30, 0);
                 player.playSound(player.getLocation(), Sound.BLOCK_DISPENSER_DISPENSE, 1, 1);
             }
 
+            // Start game
             if (this.startTime >= startCooldown) {
                 Bukkit.getPluginManager().callEvent(new SurvivalGameStartEvent(this));
 
@@ -84,7 +93,11 @@ public class SurvivalGame {
     }
 
     public List<Player> getPlayers() {
-        return new ArrayList<>(Bukkit.getOnlinePlayers());
+        List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
+
+        players.removeIf(player -> !player.getScoreboardTags().contains("playing"));
+
+        return players;
     }
 
     public void endGame() {

@@ -1,7 +1,10 @@
 package dev.quozul.UHC.Commands;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.DyeColor;
 import org.bukkit.Material;
+import org.bukkit.block.Banner;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -15,13 +18,37 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scoreboard.Team;
 
+import java.util.*;
+
 public class SelectTeam implements Listener, CommandExecutor {
 
-    private ItemStack createGuiItem(String name, Material mat, int amount) {
+    private static Map<ChatColor, DyeColor> ChatToDye = new HashMap<>();
+
+    public SelectTeam() {
+        ChatToDye.put(ChatColor.AQUA, DyeColor.CYAN);
+        ChatToDye.put(ChatColor.BLACK, DyeColor.BLACK);
+        ChatToDye.put(ChatColor.BLUE, DyeColor.LIGHT_BLUE);
+        ChatToDye.put(ChatColor.DARK_AQUA, DyeColor.MAGENTA);
+        ChatToDye.put(ChatColor.DARK_BLUE, DyeColor.BLUE);
+        ChatToDye.put(ChatColor.DARK_GRAY, DyeColor.GRAY);
+        ChatToDye.put(ChatColor.DARK_GREEN, DyeColor.GREEN);
+        ChatToDye.put(ChatColor.DARK_PURPLE, DyeColor.PURPLE);
+        ChatToDye.put(ChatColor.DARK_RED, DyeColor.BROWN);
+        ChatToDye.put(ChatColor.GOLD, DyeColor.ORANGE);
+        ChatToDye.put(ChatColor.GRAY, DyeColor.LIGHT_GRAY);
+        ChatToDye.put(ChatColor.GREEN, DyeColor.LIME);
+        ChatToDye.put(ChatColor.LIGHT_PURPLE, DyeColor.PINK);
+        ChatToDye.put(ChatColor.RED, DyeColor.RED);
+        ChatToDye.put(ChatColor.WHITE, DyeColor.WHITE);
+        ChatToDye.put(ChatColor.YELLOW, DyeColor.YELLOW);
+    }
+
+    private ItemStack createGuiItem(String name, Material mat, int amount, List<String> lore) {
         final ItemStack i = new ItemStack(mat, Math.max(amount, 1));
         final ItemMeta iMeta = i.getItemMeta();
 
         iMeta.setDisplayName(name);
+        iMeta.setLore(lore);
         i.setItemMeta(iMeta);
 
         return i;
@@ -30,22 +57,23 @@ public class SelectTeam implements Listener, CommandExecutor {
     private void createnopen(Player player) {
         final Inventory inv = Bukkit.createInventory(null, 18, "Choisir une équipe");
 
-        inv.setItem(0, this.createGuiItem("§0§lNoir", Material.BLACK_WOOL, 1));
-        inv.setItem(1, this.createGuiItem("§1§lBleu foncé", Material.BLUE_WOOL, 1));
-        inv.setItem(2, this.createGuiItem("§2§lVert foncé", Material.GREEN_WOOL, 1));
-        inv.setItem(3, this.createGuiItem("§3§lBleu ciel", Material.LIGHT_BLUE_WOOL, 1));
-        inv.setItem(4, this.createGuiItem("§4§lMarron", Material.BROWN_WOOL, 1));
-        inv.setItem(5, this.createGuiItem("§5§lViolet", Material.PURPLE_WOOL, 1));
-        inv.setItem(6, this.createGuiItem("§6§lOr", Material.ORANGE_WOOL, 1));
-        inv.setItem(7, this.createGuiItem("§7§lGris", Material.LIGHT_GRAY_WOOL, 1));
-        inv.setItem(8, this.createGuiItem("§8§lGris foncé", Material.GRAY_WOOL, 1));
-        inv.setItem(9, this.createGuiItem("§9§lBleu clair", Material.BLUE_WOOL, 1));
-        inv.setItem(10, this.createGuiItem("§a§lVert clair", Material.LIME_WOOL, 1));
-        inv.setItem(11, this.createGuiItem("§b§lCyan", Material.CYAN_WOOL, 1));
-        inv.setItem(12, this.createGuiItem("§c§lRouge", Material.RED_WOOL, 1));
-        inv.setItem(13, this.createGuiItem("§d§lMagenta", Material.MAGENTA_WOOL, 1));
-        inv.setItem(14, this.createGuiItem("§e§lJaune", Material.YELLOW_WOOL, 1));
-        inv.setItem(15, this.createGuiItem("§f§lBlanc", Material.WHITE_WOOL, 1));
+        Set<Team> teams = player.getScoreboard().getTeams();
+        List<Team> teamList = new ArrayList<>(teams);
+
+        for (Team team : teamList) {
+            int index = teamList.indexOf(team);
+
+            Material banner = Material.getMaterial(ChatToDye.get(team.getColor()) + "_BANNER");
+            if (banner == null) banner = Material.WHITE_BANNER;
+
+            inv.setItem(index,
+                    this.createGuiItem(
+                            team.getColor() + "§l" + team.getDisplayName(),
+                            banner, team.getEntries().size(),
+                            Collections.singletonList(team.getName())
+                    )
+            );
+        }
 
         player.openInventory(inv);
     }
@@ -56,13 +84,12 @@ public class SelectTeam implements Listener, CommandExecutor {
             Player player = (Player) e.getWhoClicked();
 
             if (e.getCurrentItem() != null) {
-                String itemName = e.getCurrentItem().getItemMeta().getDisplayName();
-                String teamName = itemName.split("§l")[1];
+                String teamName = e.getCurrentItem().getItemMeta().getLore().get(0);
 
                 Team team = player.getScoreboard().getTeam(teamName);
                 if (team != null) {
-                    player.getScoreboard().getTeam(teamName).addEntry(player.getName());
-                    player.sendMessage("§7Equipe " + itemName + "§r§7 rejoint !");
+                    team.addEntry(player.getName());
+                    player.sendMessage("§7Equipe " + team.getColor() + team.getDisplayName() + "§r§7 rejoint !");
                     e.getView().close();
                 } else
                     player.sendMessage("Une erreur est survenue lors de l'ajout à une équipe !");

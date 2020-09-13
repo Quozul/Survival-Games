@@ -9,6 +9,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
+import java.util.List;
+
 public class GameEnd implements Listener {
     @EventHandler
     public void onSurvivalGameEnd(SurvivalGameEndEvent e) {
@@ -24,8 +26,6 @@ public class GameEnd implements Listener {
             if (!player.getScoreboardTags().contains("died") && player.getScoreboardTags().contains("playing"))
                 winner = player;
 
-            player.getScoreboardTags().remove("playing");
-
             player.getInventory().clear();
         }
 
@@ -34,12 +34,15 @@ public class GameEnd implements Listener {
 
         // Teleport players back to spawn after 10 seconds
         Bukkit.getServer().getScheduler().runTaskLater(Main.plugin, () -> {
-            for (Player player : e.getGame().getPlayers()) {
+            List<Player> players = e.getGame().getPlayers();
+            for (Player player : players) {
                 World world = Bukkit.getWorld(e.getGame().getDefaultWorldName());
                 Location loc = world.getSpawnLocation();
 
                 player.teleport(loc);
                 player.setGameMode(GameMode.ADVENTURE);
+
+                player.getScoreboardTags().remove("playing");
             }
         }, 200);
     }
