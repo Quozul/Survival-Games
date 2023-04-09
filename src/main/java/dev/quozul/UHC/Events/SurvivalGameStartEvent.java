@@ -8,8 +8,8 @@ public class SurvivalGameStartEvent extends Event {
     private static final HandlerList handlers = new HandlerList();
     private SurvivalGame game;
 
-    public SurvivalGameStartEvent(SurvivalGame g) {
-        game = g;
+    public SurvivalGameStartEvent(SurvivalGame game) {
+        this.game = game;
     }
 
     public SurvivalGame getGame() {

@@ -20,13 +20,13 @@ public class GameBossBars implements Listener {
     private final NamespacedKey progressBossBarKey = new NamespacedKey(Main.plugin, "uhc_progress");
 
     @EventHandler
-    public void onSurvivalGameStart(SurvivalGameStartEvent e) {
+    public void onSurvivalGameStart(SurvivalGameStartEvent event) {
         // Create the step progress boss bar
         BossBar borderBossBar = Bukkit.getServer().createBossBar(progressBossBarKey, "Bordure", BarColor.RED, BarStyle.SOLID);
         borderBossBar.setVisible(true);
         borderBossBar.setProgress(0);
 
-        for (Player player : e.getGame().getPlayers()) {
+        for (Player player : event.getGame().getPlayers()) {
             // Create player bossbar
             BossBar playerBossBar = Bukkit.getServer().createBossBar(new NamespacedKey(Main.plugin, player.getName()), "", BarColor.WHITE, BarStyle.SOLID);
             playerBossBar.setVisible(true);
@@ -40,9 +40,9 @@ public class GameBossBars implements Listener {
     }
 
     @EventHandler
-    public void onSurvivalGameTick(SurvivalGameTickEvent e) {
-        double borderSize = Bukkit.getServer().getWorld(e.getGame().getWorldName()).getWorldBorder().getSize();
-        double bossBarPercentage = borderSize / (float)e.getGame().getInitialBorderRadius();
+    public void onSurvivalGameTick(SurvivalGameTickEvent event) {
+        double borderSize = Bukkit.getServer().getWorld(event.getGame().getWorldName()).getWorldBorder().getSize();
+        double bossBarPercentage = borderSize / (float) event.getGame().getInitialBorderRadius();
         double borderRadius = borderSize / 2;
 
         // Border bossbar
@@ -54,8 +54,8 @@ public class GameBossBars implements Listener {
     }
 
     @EventHandler
-    public void onPlayerMove(PlayerMoveEvent e) {
-        Player player = e.getPlayer();
+    public void onPlayerMove(PlayerMoveEvent event) {
+        Player player = event.getPlayer();
 
         // Player bossbar
         BossBar playerBossBar = Bukkit.getServer().getBossBar(new NamespacedKey(Main.plugin, player.getName()));
@@ -74,13 +74,13 @@ public class GameBossBars implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onSurvivalGameEnd(SurvivalGameEndEvent e) {
+    public void onSurvivalGameEnd(SurvivalGameEndEvent event) {
         // Remove border bossbar
         BossBar bossBar = Bukkit.getServer().getBossBar(progressBossBarKey);
         if (bossBar != null) bossBar.removeAll();
         Bukkit.getServer().removeBossBar(progressBossBarKey);
 
-        for (Player player : e.getGame().getPlayers()) {
+        for (Player player : event.getGame().getPlayers()) {
             // Remove player bossbar
             NamespacedKey playerKey = new NamespacedKey(Main.plugin, player.getName());
 

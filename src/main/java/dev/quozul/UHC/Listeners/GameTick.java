@@ -11,7 +11,7 @@ import org.bukkit.scoreboard.Scoreboard;
 
 public class GameTick implements Listener {
     @EventHandler
-    public void onSurvivalGameTick(SurvivalGameTickEvent e) {
+    public void onSurvivalGameTick(SurvivalGameTickEvent event) {
         for (Player player : Bukkit.getServer().getOnlinePlayers()) {
             // Update scoreboard
             Scoreboard board = player.getScoreboard();

@@ -16,19 +16,19 @@ public class GameStart implements Listener {
     private static double circle = Math.PI * 2;
 
     @EventHandler
-    public void onSurvivalGameStart(SurvivalGameStartEvent e) {
+    public void onSurvivalGameStart(SurvivalGameStartEvent event) {
         // Set the world border for each world to the default one
-        List<World> worlds = e.getGame().getWorlds();
+        List<World> worlds = event.getGame().getWorlds();
 
         for (World world : worlds) {
             // World border
             WorldBorder worldBorder = world.getWorldBorder();
 
             worldBorder.setCenter(0, 0);
-            worldBorder.setSize(e.getGame().getInitialBorderRadius());
+            worldBorder.setSize(event.getGame().getInitialBorderRadius());
             worldBorder.setDamageAmount(1);
 
-            worldBorder.setSize(1, e.getGame().getGameDuration() / 20);
+            worldBorder.setSize(1, event.getGame().getGameDuration() / 20);
 
             // Reset time
             world.setFullTime(0);
@@ -60,10 +60,10 @@ public class GameStart implements Listener {
 
                     if (player != null) {
                         // Teleports every players with their team to a equal distance from each others
-                        int x = (int) Math.round(Math.cos(i * radiusBetweenTeams + salt) * (e.getGame().getInitialBorderRadius() / 2.5));
-                        int z = (int) Math.round(Math.sin(i * radiusBetweenTeams + salt) * (e.getGame().getInitialBorderRadius() / 2.5));
+                        int x = (int) Math.round(Math.cos(i * radiusBetweenTeams + salt) * (event.getGame().getInitialBorderRadius() / 2.5));
+                        int z = (int) Math.round(Math.sin(i * radiusBetweenTeams + salt) * (event.getGame().getInitialBorderRadius() / 2.5));
 
-                        World world = Bukkit.getWorld(e.getGame().getWorldName());
+                        World world = Bukkit.getWorld(event.getGame().getWorldName());
                         Location loc = new Location(world, x, 255, z);
 
                         player.teleport(loc);
@@ -75,7 +75,7 @@ public class GameStart implements Listener {
             }
         }
 
-        for (Player player : e.getGame().getPlayers()) {
+        for (Player player : event.getGame().getPlayers()) {
             // Heal player
             player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 20, 255));
             player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 20, 255));
