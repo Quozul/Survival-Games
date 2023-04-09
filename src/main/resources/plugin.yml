@@ -1,8 +1,8 @@
 name: UHC
-version: 0.2
+version: 0.3
 author: Quozul
 main: dev.quozul.UHC.Main
-api-version: 1.16
+api-version: 1.19
 
 commands:
   start:

@@ -5,9 +5,7 @@ import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.libs.org.apache.commons.io.FileUtils;
 
-import java.io.File;
 import java.io.IOException;
 
 public class RegenWorlds implements CommandExecutor {
@@ -15,8 +13,6 @@ public class RegenWorlds implements CommandExecutor {
     public static void regenerateWorld(String worldName, World.Environment worldEnvironment) throws IOException {
         World world = Bukkit.getServer().getWorld(worldName);
         if (world != null) {
-            File worldFolder = world.getWorldFolder();
-
             // Unload the world.
             Bukkit.getServer().unloadWorld(world, false);
 
@@ -26,7 +22,7 @@ public class RegenWorlds implements CommandExecutor {
             for (Chunk chunk : chunks)
                 chunk.unload(false);
 
-            FileUtils.deleteDirectory(worldFolder);
+            world.getWorldFolder().delete();
         }
 
         generateWorld(worldName, worldEnvironment);
