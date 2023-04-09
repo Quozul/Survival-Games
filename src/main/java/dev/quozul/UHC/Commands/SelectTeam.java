@@ -1,28 +1,40 @@
 package dev.quozul.UHC.Commands;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.DyeColor;
-import org.bukkit.Material;
-import org.bukkit.block.Banner;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class SelectTeam implements Listener, CommandExecutor {
+class SelectTeamHolder implements InventoryHolder {
+    private Inventory inventory;
+
+    public void setInventory(Inventory inventory) {
+        this.inventory = inventory;
+    }
+
+    @Override
+    public @NotNull Inventory getInventory() {
+        return inventory;
+    }
+}
+
+public class SelectTeam implements Listener {
 
     private static Map<ChatColor, DyeColor> ChatToDye = new HashMap<>();
+    private final static @NotNull NamespacedKey namespace = new NamespacedKey("quozul", "data_container");
 
     public SelectTeam() {
         ChatToDye.put(ChatColor.AQUA, DyeColor.CYAN);
@@ -43,19 +55,29 @@ public class SelectTeam implements Listener, CommandExecutor {
         ChatToDye.put(ChatColor.YELLOW, DyeColor.YELLOW);
     }
 
-    private ItemStack createGuiItem(String name, Material mat, int amount, List<String> lore) {
-        final ItemStack i = new ItemStack(mat, Math.max(amount, 1));
-        final ItemMeta iMeta = i.getItemMeta();
+    private static ItemStack createGuiItem(Component name, Material material, int amount, Team team) {
+        final ItemStack item = new ItemStack(material, Math.max(amount, 1));
 
-        iMeta.setDisplayName(name);
-        iMeta.setLore(lore);
-        i.setItemMeta(iMeta);
+        item.editMeta(meta -> {
+            meta.displayName(name);
+            meta.lore(List.of(
+                    Component.text(amount)
+                            .appendSpace()
+                            .append(Component.text("joueurs dans cette équipe."))
+                            .color(NamedTextColor.GRAY)
+                            .decoration(TextDecoration.ITALIC, TextDecoration.State.FALSE),
+                    Component.text("Clic-gauche pour rejoindre")
+            ));
+            meta.getPersistentDataContainer().set(namespace, PersistentDataType.STRING, team.getName());
+        });
 
-        return i;
+        return item;
     }
 
-    private void createnopen(Player player) {
-        final Inventory inv = Bukkit.createInventory(null, 18, "Choisir une équipe");
+    public static void createAndOpen(Player player) {
+        SelectTeamHolder holder = new SelectTeamHolder();
+        Inventory inventory = Bukkit.createInventory(holder, 18, Component.text("Choisir une équipe"));
+        holder.setInventory(inventory);
 
         Set<Team> teams = player.getScoreboard().getTeams();
         List<Team> teamList = new ArrayList<>(teams);
@@ -63,34 +85,33 @@ public class SelectTeam implements Listener, CommandExecutor {
         for (Team team : teamList) {
             int index = teamList.indexOf(team);
 
+            // TODO: Get closest banner's color from team's color
             Material banner = Material.getMaterial(ChatToDye.get(team.getColor()) + "_BANNER");
             if (banner == null) banner = Material.WHITE_BANNER;
 
-            inv.setItem(index,
-                    this.createGuiItem(
-                            team.getColor() + "§l" + team.getDisplayName(),
-                            banner, team.getEntries().size(),
-                            Collections.singletonList(team.getName())
-                    )
-            );
+            inventory.setItem(index, createGuiItem(team.displayName(), banner, team.getEntries().size(), team));
         }
 
-        player.openInventory(inv);
+        player.openInventory(inventory);
     }
 
     @EventHandler
-    public void onInventoryClick(InventoryClickEvent e) {
-        if (e.getView().getTitle().equals("Choisir une équipe")) {
-            Player player = (Player) e.getWhoClicked();
+    public void onInventoryClick(InventoryClickEvent event) {
+        if (event.getInventory().getHolder() instanceof SelectTeamHolder) {
+            Player player = (Player) event.getWhoClicked();
 
-            if (e.getCurrentItem() != null) {
-                String teamName = e.getCurrentItem().getItemMeta().getLore().get(0);
+            if (event.getCurrentItem() != null) {
+                String teamName = event.getCurrentItem()
+                        .getItemMeta()
+                        .getPersistentDataContainer()
+                        .get(namespace, PersistentDataType.STRING);
 
                 Team team = player.getScoreboard().getTeam(teamName);
+
                 if (team != null) {
                     team.addEntry(player.getName());
                     player.sendMessage("§7Equipe " + team.getColor() + team.getDisplayName() + "§r§7 rejoint !");
-                    e.getView().close();
+                    event.getView().close();
                 } else
                     player.sendMessage("Une erreur est survenue lors de l'ajout à une équipe !");
             }
@@ -119,15 +140,8 @@ public class SelectTeam implements Listener, CommandExecutor {
     }*/
 
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent e) {
-        createnopen(e.getPlayer());
-    }
-
-    @Override
-    public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
-        createnopen((Player) commandSender);
-
-        return true;
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        createAndOpen(event.getPlayer());
     }
 
 }

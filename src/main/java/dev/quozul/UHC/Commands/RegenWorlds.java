@@ -1,16 +1,18 @@
 package dev.quozul.UHC.Commands;
 
+import co.aikar.commands.BaseCommand;
+import co.aikar.commands.CommandHelp;
+import co.aikar.commands.annotation.Default;
+import co.aikar.commands.annotation.HelpCommand;
 import dev.quozul.UHC.Main;
 import org.bukkit.*;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 
 import java.io.IOException;
 
-public class RegenWorlds implements CommandExecutor {
+public class RegenWorlds extends BaseCommand {
 
-    public static void regenerateWorld(String worldName, World.Environment worldEnvironment) throws IOException {
+    static void regenerateWorld(String worldName, World.Environment worldEnvironment) throws IOException {
         World world = Bukkit.getServer().getWorld(worldName);
         if (world != null) {
             // Unload the world.
@@ -28,7 +30,7 @@ public class RegenWorlds implements CommandExecutor {
         generateWorld(worldName, worldEnvironment);
     }
 
-    public static void generateWorld(String worldName, World.Environment worldEnvironment) {
+    static void generateWorld(String worldName, World.Environment worldEnvironment) {
         // Generating worlds
         WorldCreator uhcWorldCreator = new WorldCreator(worldName);
         uhcWorldCreator.environment(worldEnvironment);
@@ -53,29 +55,35 @@ public class RegenWorlds implements CommandExecutor {
         world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
     }
 
-    public static void regenerateUHCWorlds() throws IOException {
-        String worldName = Main.plugin.getConfig().getString("game-worldname");
+    private static void regenerateUHCWorlds() throws IOException {
+        String worldName = Main.plugin.getConfig().getString("game-world-name");
 
         regenerateWorld(worldName, World.Environment.NORMAL);
         regenerateWorld(worldName + "_nether", World.Environment.NETHER);
     }
 
     public static void generateWorlds() throws IOException {
-        String worldName = Main.plugin.getConfig().getString("game-worldname");
+        String worldName = Main.plugin.getConfig().getString("game-world-name");
 
         generateWorld(worldName, World.Environment.NORMAL);
         generateWorld(worldName + "_nether", World.Environment.NETHER);
     }
 
-    @Override
-    public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
+    @Default
+    void onCommand(CommandSender commandSender) {
+        if (!commandSender.isOp()) {
+            return;
+        }
+
         try {
             regenerateUHCWorlds();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return false;
     }
 
+    @HelpCommand
+    void doHelp(CommandHelp help) {
+        help.showHelp();
+    }
 }

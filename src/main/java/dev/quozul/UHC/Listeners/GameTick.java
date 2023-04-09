@@ -1,9 +1,7 @@
 package dev.quozul.UHC.Listeners;
 
-import dev.quozul.UHC.Commands.StartCommand;
 import dev.quozul.UHC.Events.SurvivalGameTickEvent;
 import org.bukkit.Bukkit;
-import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

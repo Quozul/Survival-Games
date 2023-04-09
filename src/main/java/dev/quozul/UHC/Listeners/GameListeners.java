@@ -1,7 +1,6 @@
 package dev.quozul.UHC.Listeners;
 
 import dev.quozul.UHC.Commands.StartCommand;
-import dev.quozul.UHC.Events.SurvivalGameEndEvent;
 import dev.quozul.UHC.Main;
 import org.bukkit.*;
 import org.bukkit.entity.EntityType;
@@ -62,7 +61,7 @@ public class GameListeners implements Listener {
             team.removeEntry(player.getName());
 
         // Teleport player to default world
-        World world = Bukkit.getWorld(Main.plugin.getConfig().getString("server-worldname"));
+        World world = Bukkit.getWorld(Main.plugin.getConfig().getString("lobby-world-name"));
         Location loc = world.getSpawnLocation();
 
         player.teleport(loc);
@@ -80,7 +79,7 @@ public class GameListeners implements Listener {
 
     @EventHandler
     public void onPlayerPortal(PlayerPortalEvent e) {
-        String worldName = Main.plugin.getConfig().getString("game-worldname");
+        String worldName = Main.plugin.getConfig().getString("game-world-name");
 
         if (e.getFrom().getWorld().getName().equals(worldName))
             e.getTo().setWorld(Bukkit.getWorld(worldName + "_nether"));

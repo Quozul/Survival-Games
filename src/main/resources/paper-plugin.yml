@@ -3,3 +3,4 @@ version: 0.3
 author: Quozul
 main: dev.quozul.UHC.Main
 api-version: 1.19
+loader: dev.quozul.UHC.Loader

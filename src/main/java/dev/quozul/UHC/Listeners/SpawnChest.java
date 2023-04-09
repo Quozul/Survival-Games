@@ -1,27 +1,28 @@
 package dev.quozul.UHC.Listeners;
 
+import co.aikar.commands.BaseCommand;
+import co.aikar.commands.CommandHelp;
+import co.aikar.commands.annotation.CommandAlias;
+import co.aikar.commands.annotation.Default;
+import co.aikar.commands.annotation.HelpCommand;
 import dev.quozul.UHC.Events.SurvivalGameTickEvent;
 import dev.quozul.UHC.Main;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.ShulkerBox;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.loot.LootTables;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 
 import java.util.*;
 
-public class SpawnChest implements Listener, CommandExecutor {
+@CommandAlias("spanwchest")
+public class SpawnChest extends BaseCommand implements Listener {
     private static final Map<LootTables, Material> LootTablesList = new HashMap<>();
     private final double chestChance = Main.plugin.getConfig().getDouble("chest-chance");
     private final int chestDelay = Main.plugin.getConfig().getInt("chest-delay");
@@ -108,7 +109,7 @@ public class SpawnChest implements Listener, CommandExecutor {
     @EventHandler
     public void onShulkerBreak(BlockBreakEvent e) {
         if (e.getBlock().getType().toString().contains("SHULKER_BOX"))
-            if (((ShulkerBox)e.getBlock().getState()).getInventory().isEmpty())
+            if (((ShulkerBox) e.getBlock().getState()).getInventory().isEmpty())
                 e.setDropItems(false);
             else
                 e.setCancelled(true);
@@ -125,9 +126,9 @@ public class SpawnChest implements Listener, CommandExecutor {
         }
     }
 
-    @Override
-    public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
-        if (!commandSender.isOp()) return false;
+    @Default
+    public void onCommand(CommandSender commandSender) {
+        if (!commandSender.isOp()) return;
 
         Player player = (Player) commandSender;
         Location loc = player.getLocation();
@@ -171,7 +172,10 @@ public class SpawnChest implements Listener, CommandExecutor {
         }*/
 
         spawnChest(loc, new ArrayList<>(Bukkit.getOnlinePlayers()));
+    }
 
-        return true;
+    @HelpCommand
+    void doHelp(CommandHelp help) {
+        help.showHelp();
     }
 }

@@ -1,6 +1,10 @@
 package dev.quozul.UHC;
 
-import dev.quozul.UHC.Commands.*;
+import co.aikar.commands.PaperCommandManager;
+import dev.quozul.UHC.Commands.JoinTeam;
+import dev.quozul.UHC.Commands.RegenWorlds;
+import dev.quozul.UHC.Commands.SelectTeam;
+import dev.quozul.UHC.Commands.StartCommand;
 import dev.quozul.UHC.Listeners.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -9,6 +13,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
 import java.io.IOException;
+import java.util.Locale;
 
 public class Main extends JavaPlugin {
 
@@ -35,8 +40,9 @@ public class Main extends JavaPlugin {
         StartCommand.teamNames.put("white", ChatColor.WHITE);
 
         Scoreboard board = Bukkit.getServer().getScoreboardManager().getMainScoreboard();
-        for (Team team : board.getTeams())
+        for (Team team : board.getTeams()) {
             team.unregister();
+        }
 
         StartCommand.teamNames.forEach((name, color) -> {
             if (board.getTeam(name) == null) {
@@ -50,23 +56,28 @@ public class Main extends JavaPlugin {
     public void onEnable() {
         plugin = this;
 
-        this.getCommand("start").setExecutor(new StartCommand());
-        this.getCommand("jointeam").setExecutor(new JoinTeam());
-        this.getCommand("regenerateworlds").setExecutor(new RegenWorlds());
+        // Init command manager
+        PaperCommandManager manager = new PaperCommandManager(this);
+        manager.enableUnstableAPI("brigadier");
+        manager.enableUnstableAPI("help");
+        manager.getLocales().setDefaultLocale(Locale.FRENCH);
 
-        this.getCommand("selectteam").setExecutor(new SelectTeam());
-        this.getServer().getPluginManager().registerEvents(new SelectTeam(), this);
+        // Register commands
+        manager.registerCommand(new StartCommand());
+        manager.registerCommand(new RegenWorlds());
+        manager.registerCommand(new JoinTeam(manager));
 
-        this.getServer().getPluginManager().registerEvents(new GameListeners(), this);
-
-        this.getServer().getPluginManager().registerEvents(new GameStart(), this);
-        this.getServer().getPluginManager().registerEvents(new GameTick(), this);
-        this.getServer().getPluginManager().registerEvents(new GameEnd(), this);
-        this.getServer().getPluginManager().registerEvents(new GameBossBars(), this);
+        // Register events
+        getServer().getPluginManager().registerEvents(new SelectTeam(), this);
+        getServer().getPluginManager().registerEvents(new GameListeners(), this);
+        getServer().getPluginManager().registerEvents(new GameStart(), this);
+        getServer().getPluginManager().registerEvents(new GameTick(), this);
+        getServer().getPluginManager().registerEvents(new GameEnd(), this);
+        getServer().getPluginManager().registerEvents(new GameBossBars(), this);
 
         SpawnChest spawnChest = new SpawnChest();
-        this.getCommand("spawnchest").setExecutor(spawnChest);
-        this.getServer().getPluginManager().registerEvents(spawnChest, this);
+        manager.registerCommand(spawnChest);
+        getServer().getPluginManager().registerEvents(spawnChest, this);
 
         plugin.saveDefaultConfig();
 
@@ -76,7 +87,7 @@ public class Main extends JavaPlugin {
             e.printStackTrace();
         }
 
-        //createTeams();
+        createTeams();
     }
 
     @Override
