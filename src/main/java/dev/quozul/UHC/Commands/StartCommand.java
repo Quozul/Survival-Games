@@ -1,19 +1,22 @@
 package dev.quozul.UHC.Commands;
 
+import co.aikar.commands.BaseCommand;
+import co.aikar.commands.CommandHelp;
+import co.aikar.commands.annotation.CommandAlias;
+import co.aikar.commands.annotation.Default;
+import co.aikar.commands.annotation.HelpCommand;
+import co.aikar.commands.annotation.Optional;
 import dev.quozul.UHC.Main;
 import dev.quozul.UHC.SurvivalGame;
-import org.bukkit.*;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
+import net.kyori.adventure.text.Component;
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class StartCommand implements CommandExecutor {
-
-    // Constants
-    public static NamespacedKey gameProgressBossBarNamespace = new NamespacedKey(Main.plugin, "uhc_progress");
+@CommandAlias("start")
+public class StartCommand extends BaseCommand {
 
     // Create default teams
     public static Map<String, ChatColor> teamNames = new HashMap<>();
@@ -21,22 +24,27 @@ public class StartCommand implements CommandExecutor {
     // TODO: Change this variable to non-static
     public static SurvivalGame game = null;
 
-    @Override
-    public boolean onCommand(CommandSender commandSender, Command command, String s, String[] args) {
-        if (!commandSender.isOp())
-            return false;
+    @Default
+    void onCommand(CommandSender commandSender, @Optional Integer gameTime, @Optional Integer borderRadius) {
+        if (!commandSender.isOp()) {
+            return;
+        }
 
-        int gameTime = Main.plugin.getConfig().getInt("game-duration");
-        int borderRadius = Main.plugin.getConfig().getInt("border-radius");
+        if (gameTime == null) {
+            gameTime = Main.plugin.getConfig().getInt("game-duration");
+        }
 
-        if (args.length >= 1)
-            gameTime = Integer.parseInt(args[0]);
-        if (args.length >= 2)
-            borderRadius = Integer.parseInt(args[1]);
+        if (borderRadius == null) {
+            borderRadius = Main.plugin.getConfig().getInt("border-radius");
+        }
 
         game = new SurvivalGame(gameTime, borderRadius);
 
-        return true;
+        commandSender.sendMessage(Component.text(String.format("Démarrage d'une partie de %d minutes avec un rayon de %d blocks.", gameTime, borderRadius)));
     }
 
+    @HelpCommand
+    void doHelp(CommandHelp help) {
+        help.showHelp();
+    }
 }

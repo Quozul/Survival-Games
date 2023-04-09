@@ -5,15 +5,15 @@ border-radius: 2048
 game-duration: 30
 
 # Time before the game starts in seconds
-start-cooldown: 10
+start-delay: 10
 
 # World's name used by the plugin
 # DO NOT use the server's default world name
-game-worldname: 'uhc'
+game-world-name: 'uhc'
 
 # Server's default world name
 # This is where players will be teleported at the end of a game
-server-worldname: 'world'
+lobby-world-name: 'world'
 
 # Delay in second a chest try to spawn
 chest-delay: 60
