@@ -92,33 +92,33 @@ public class SpawnChest extends BaseCommand implements Listener {
     }
 
     @EventHandler
-    public void onGameTicks(SurvivalGameTickEvent e) {
+    public void onGameTicks(SurvivalGameTickEvent event) {
         // Spawn chest every minutes
-        if (e.getGame().getGameTime() % (chestDelay * 20) == 0 && Math.random() > chestChance) {
+        if (event.getGame().getGameTime() % (chestDelay * 20) == 0 && Math.random() > chestChance) {
 
-            World world = Bukkit.getServer().getWorld(e.getGame().getWorldName());
+            World world = Bukkit.getServer().getWorld(event.getGame().getWorldName());
             double size = world.getWorldBorder().getSize();
             Location loc = new Location(world, (Math.random() * size - size / 2) * 0.75, 0, (Math.random() * size - size / 2) * 0.75);
             loc.setY(world.getHighestBlockYAt(loc) + 1);
 
-            spawnChest(loc, e.getGame().getPlayers());
+            spawnChest(loc, event.getGame().getPlayers());
 
         }
     }
 
     @EventHandler
-    public void onShulkerBreak(BlockBreakEvent e) {
-        if (e.getBlock().getType().toString().contains("SHULKER_BOX"))
-            if (((ShulkerBox) e.getBlock().getState()).getInventory().isEmpty())
-                e.setDropItems(false);
+    public void onShulkerBreak(BlockBreakEvent event) {
+        if (event.getBlock().getType().toString().contains("SHULKER_BOX"))
+            if (((ShulkerBox) event.getBlock().getState()).getInventory().isEmpty())
+                event.setDropItems(false);
             else
-                e.setCancelled(true);
+                event.setCancelled(true);
     }
 
     @EventHandler
-    public void onShulkerClose(InventoryCloseEvent e) {
-        if (e.getInventory().getType().equals(InventoryType.SHULKER_BOX) && e.getInventory().isEmpty()) {
-            Location loc = e.getInventory().getLocation();
+    public void onShulkerClose(InventoryCloseEvent event) {
+        if (event.getInventory().getType().equals(InventoryType.SHULKER_BOX) && event.getInventory().isEmpty()) {
+            Location loc = event.getInventory().getLocation();
             loc.getBlock().setType(Material.AIR);
 
             loc.getWorld().spawnParticle(Particle.SMOKE_NORMAL, loc.add(.5, .5, .5), 100, 0, .1, .1, .1);

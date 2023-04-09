@@ -20,8 +20,8 @@ import org.bukkit.scoreboard.Team;
 public class GameListeners implements Listener {
 
     @EventHandler
-    public void onPlayerMove(PlayerMoveEvent e) {
-        Player player = e.getPlayer();
+    public void onPlayerMove(PlayerMoveEvent event) {
+        Player player = event.getPlayer();
 
         // Remove slow falling when player reach the ground
         if (player.getScoreboardTags().contains("spawning") && player.isOnGround()) {
@@ -31,8 +31,8 @@ public class GameListeners implements Listener {
     }
 
     @EventHandler
-    public void onPlayerDie(PlayerDeathEvent e) {
-        Player player = e.getEntity();
+    public void onPlayerDie(PlayerDeathEvent event) {
+        Player player = event.getEntity();
 
         if (player.getScoreboardTags().contains("playing")) {
             // Play death sound
@@ -52,8 +52,8 @@ public class GameListeners implements Listener {
     }
 
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent e) {
-        Player player = e.getPlayer();
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
 
         player.setGameMode(GameMode.ADVENTURE);
 
@@ -68,35 +68,48 @@ public class GameListeners implements Listener {
     }
 
     @EventHandler
-    public void onPlayerLeave(PlayerQuitEvent e) {
-        Player player = e.getPlayer();
+    public void onPlayerLeave(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
 
         if (player.getScoreboardTags().contains("playing")) {
             player.setHealth(0);
             player.getScoreboardTags().remove("playing");
         }
+
+        Team team = player.getScoreboard().getPlayerTeam(player);
+        if (team != null) {
+            team.removePlayer(player);
+
+            if (team.getSize() == 0) {
+                team.unregister();
+            }
+        }
     }
 
     @EventHandler
-    public void onPlayerPortal(PlayerPortalEvent e) {
+    public void onPlayerPortal(PlayerPortalEvent event) {
         String worldName = Main.plugin.getConfig().getString("game-world-name");
 
-        if (e.getFrom().getWorld().getName().equals(worldName))
-            e.getTo().setWorld(Bukkit.getWorld(worldName + "_nether"));
+        if (event.getFrom().getWorld().getName().equals(worldName)) {
+            event.getTo().setWorld(Bukkit.getWorld(worldName + "_nether"));
+        }
 
-        if (e.getFrom().getWorld().getName().equals(worldName + "_nether"))
-            e.getTo().setWorld(Bukkit.getWorld(worldName));
+        if (event.getFrom().getWorld().getName().equals(worldName + "_nether")) {
+            event.getTo().setWorld(Bukkit.getWorld(worldName));
+        }
     }
 
     @EventHandler
-    public void onPlayerDamage(EntityDamageEvent e) {
-        if (e.getEntityType() == EntityType.PLAYER && ((Player) e.getEntity()).getGameMode() == GameMode.ADVENTURE)
-            e.setCancelled(true);
+    public void onPlayerDamage(EntityDamageEvent event) {
+        if (event.getEntityType() == EntityType.PLAYER && ((Player) event.getEntity()).getGameMode() == GameMode.ADVENTURE) {
+            event.setCancelled(true);
+        }
     }
 
     @EventHandler
-    public void onPlayerHunger(FoodLevelChangeEvent e) {
-        if (e.getEntity().getGameMode() == GameMode.ADVENTURE)
-            e.setCancelled(true);
+    public void onPlayerHunger(FoodLevelChangeEvent event) {
+        if (event.getEntity().getGameMode() == GameMode.ADVENTURE) {
+            event.setCancelled(true);
+        }
     }
 }

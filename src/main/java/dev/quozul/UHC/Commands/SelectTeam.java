@@ -8,7 +8,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -116,32 +115,6 @@ public class SelectTeam implements Listener {
                     player.sendMessage("Une erreur est survenue lors de l'ajout à une équipe !");
             }
         }
-    }
-
-    /*@EventHandler
-    public void onInventoryClose(InventoryCloseEvent e) {
-        if (e.getView().getTitle().equals("Choisir une équipe")) {
-            Player player = (Player) e.getPlayer();
-
-            int inTeams = 0;
-
-            for (Team team : player.getScoreboard().getTeams()) {
-                if (team.hasEntry(player.getName())) {
-                    inTeams++;
-                }
-            }
-
-            Bukkit.broadcastMessage(String.valueOf(inTeams));
-            if (inTeams == 0)
-                Bukkit.getServer().getScheduler().runTaskLater(Main.plugin, () -> {
-                    createnopen(player);
-                }, 1);
-        }
-    }*/
-
-    @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        createAndOpen(event.getPlayer());
     }
 
 }

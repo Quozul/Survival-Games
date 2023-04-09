@@ -9,18 +9,10 @@ import co.aikar.commands.annotation.Optional;
 import dev.quozul.UHC.Main;
 import dev.quozul.UHC.SurvivalGame;
 import net.kyori.adventure.text.Component;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @CommandAlias("start")
 public class StartCommand extends BaseCommand {
-
-    // Create default teams
-    public static Map<String, ChatColor> teamNames = new HashMap<>();
-
     // TODO: Change this variable to non-static
     public static SurvivalGame game = null;
 
