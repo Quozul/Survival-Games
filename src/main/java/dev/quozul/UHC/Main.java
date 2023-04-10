@@ -1,10 +1,7 @@
 package dev.quozul.UHC;
 
 import co.aikar.commands.PaperCommandManager;
-import dev.quozul.UHC.Commands.PartyCommand;
-import dev.quozul.UHC.Commands.RegenWorlds;
-import dev.quozul.UHC.Commands.SelectTeam;
-import dev.quozul.UHC.Commands.StartCommand;
+import dev.quozul.UHC.Commands.*;
 import dev.quozul.UHC.Listeners.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -27,7 +24,10 @@ public class Main extends JavaPlugin {
         // Register commands
         manager.registerCommand(new StartCommand());
         manager.registerCommand(new RegenWorlds());
-        manager.registerCommand(new PartyCommand(manager));
+        manager.registerCommand(new TeamCommand(manager));
+
+        manager.registerCommand(new RoomCommand(manager));
+        manager.registerCommand(new PartyCommand());
 
         // Register events
         getServer().getPluginManager().registerEvents(new SelectTeam(), this);
