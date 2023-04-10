@@ -3,35 +3,45 @@ package dev.quozul.UHC;
 import dev.quozul.UHC.Events.SurvivalGameEndEvent;
 import dev.quozul.UHC.Events.SurvivalGameStartEvent;
 import dev.quozul.UHC.Events.SurvivalGameTickEvent;
+import dev.quozul.minigame.MiniGame;
+import dev.quozul.minigame.Party;
+import dev.quozul.minigame.Room;
+import dev.quozul.minigame.RoomRequirements;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.audience.ForwardingAudience;
+import net.kyori.adventure.bossbar.BossBar;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
-import org.bukkit.Sound;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
-public class SurvivalGame {
+import static org.bukkit.Bukkit.getPluginManager;
+import static org.bukkit.Bukkit.getScheduler;
+
+public class SurvivalGame implements MiniGame, ForwardingAudience {
     private int gameTime;
     private final int gameDuration;
     private final int borderRadius;
     private final String worldName;
     private final String defaultWorldName;
+    public BossBar borderBossBar;
 
     private int task;
-    private int startTask;
     private final int interval = 20;
-    private int startTime;
+    private Room room;
 
     /**
      * Returns if there are alive players in the game.
      */
     public boolean evaluateUHC() {
-        return Bukkit.getServer()
-                .getOnlinePlayers()
-                .stream()
+        return room.getPlayers()
                 .filter(player -> player.getGameMode() == GameMode.SURVIVAL)
                 .count() <= 1;
     }
@@ -48,59 +58,18 @@ public class SurvivalGame {
         this.borderRadius = borderRadius;
         this.worldName = Main.plugin.getConfig().getString("game-world-name");
         this.defaultWorldName = Main.plugin.getConfig().getString("lobby-world-name");
-
-        final int startDelay = Main.plugin.getConfig().getInt("start-delay");
-        this.startTime = 0;
-
-        this.startTask = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(Main.plugin, () -> {
-            this.startTime++;
-
-            // Add players with teams
-            List<Team> teams = new ArrayList<>(Bukkit.getServer().getScoreboardManager().getMainScoreboard().getTeams());
-            for (Team team : teams) {
-                for (String entry : team.getEntries()) {
-                    Bukkit.getPlayer(entry).addScoreboardTag("playing");
-                }
-            }
-
-            // Display countdown
-            for (Player player : this.getPlayers()) {
-                player.sendTitle("§6§lDébut dans", String.format("§7%d secondes", startDelay - this.startTime), 0, 30, 0);
-                player.playSound(player.getLocation(), Sound.BLOCK_DISPENSER_DISPENSE, 1, 1);
-            }
-
-            // Start game
-            if (this.startTime >= startDelay) {
-                Bukkit.getPluginManager().callEvent(new SurvivalGameStartEvent(this));
-
-                this.task = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(Main.plugin, () -> {
-                    this.gameTime += interval;
-
-                    Bukkit.getPluginManager().callEvent(new SurvivalGameTickEvent(this));
-
-                    if (this.gameTime >= this.gameDuration && evaluateUHC()) {
-                        this.endGame();
-                    }
-
-                }, 0, interval);
-
-                Bukkit.getServer().getScheduler().cancelTask(this.startTask);
-            }
-
-        }, 0, interval);
+        this.borderBossBar = BossBar.bossBar(Component.text("Bordure"), 0, BossBar.Color.RED, BossBar.Overlay.PROGRESS);
     }
 
     public List<Player> getPlayers() {
-        List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
-
-        players.removeIf(player -> !player.getScoreboardTags().contains("playing"));
-
-        return players;
+        return room.getPlayers().toList();
     }
 
-    public void endGame() {
-        Bukkit.getServer().getScheduler().cancelTask(this.task);
-        Bukkit.getPluginManager().callEvent(new SurvivalGameEndEvent(this));
+    @Override
+    public void end() {
+        getScheduler().cancelTask(this.task);
+        getPluginManager().callEvent(new SurvivalGameEndEvent(this));
+        room.release();
     }
 
     public String getWorldName() {
@@ -141,5 +110,52 @@ public class SurvivalGame {
      */
     public int getGameTime() {
         return this.gameTime;
+    }
+
+    @Override
+    public void start(Room room) {
+        this.room = room;
+        getPluginManager().callEvent(new SurvivalGameStartEvent(this));
+        chests.clear();
+
+        this.task = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(Main.plugin, () -> {
+            this.gameTime += interval;
+
+            getPluginManager().callEvent(new SurvivalGameTickEvent(this));
+
+            if (this.gameTime >= this.gameDuration && evaluateUHC()) {
+                this.end();
+            }
+
+        }, 0, interval);
+    }
+
+    @Override
+    public @NotNull RoomRequirements getRequirements() {
+        return RoomRequirements.zero();
+    }
+
+    @Override
+    public @NotNull Component displayName() {
+        return Component.text("Survival game");
+    }
+
+    @Override
+    public @NotNull Iterable<? extends Audience> audiences() {
+        return room.audiences();
+    }
+
+    public Set<Party> getParties() {
+        return room.getParties();
+    }
+
+    private final List<Location> chests = new ArrayList<>();
+
+    public List<Location> getChests() {
+        return chests;
+    }
+
+    public void addChest(Location location) {
+        chests.add(location);
     }
 }

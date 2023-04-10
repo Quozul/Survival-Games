@@ -12,12 +12,15 @@ import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 import static org.bukkit.Bukkit.getScheduler;
 
@@ -27,6 +30,21 @@ enum RoomStatus {
 
 public class Room implements ForwardingAudience {
     private static final int startDelay = Main.plugin.getConfig().getInt("start-delay");
+    @NotNull
+    final static private Set<Room> rooms = new HashSet<>();
+
+    public static @Nullable Room getRoom(Player player) {
+        for (Room room : rooms) {
+            if (room.getPlayers().anyMatch(predicate -> predicate == player)) {
+                return room;
+            }
+        }
+        return null;
+    }
+
+    private void register(Room room) {
+        rooms.add(room);
+    }
 
     @NotNull
     private final Set<Party> parties = new HashSet<>();
@@ -41,6 +59,7 @@ public class Room implements ForwardingAudience {
     public Room(@NotNull MiniGame game) {
         this.game = game;
         bossBar = BossBar.bossBar(game.displayName(), 0F, BossBar.Color.YELLOW, BossBar.Overlay.NOTCHED_6);
+        register(this);
     }
 
     public void setGame(MiniGame game) {
@@ -66,7 +85,6 @@ public class Room implements ForwardingAudience {
 
         party.setRoom(this);
         parties.add(party);
-        System.out.printf("Added party of size %d\n", party.getSize());
 
         partyUpdated();
     }
@@ -127,8 +145,6 @@ public class Room implements ForwardingAudience {
      */
     private boolean canStart() {
         RoomRequirements requirements = game.getRequirements();
-        System.out.printf("%d players in room\n%d parties in room\n", getPlayerCount(), getPartyCount());
-        System.out.printf("%d < %d players required\n", requirements.getMinimumAmountOfPlayers(), requirements.getMaximumAmountOfPlayers());
         return requirements.getMinimumAmountOfPlayers() <= getPlayerCount() && getPlayerCount() <= requirements.getMaximumAmountOfPlayers();
     }
 
@@ -146,7 +162,6 @@ public class Room implements ForwardingAudience {
         showBossBar(bossBar);
 
         startTask = getScheduler().scheduleSyncRepeatingTask(Main.plugin, () -> {
-            startTime.getAndIncrement();
             Component mainTitle = Component.text("Début dans", NamedTextColor.GOLD);
             Component subtitle = Component.text(String.format("%d secondes", startDelay - startTime.get()), NamedTextColor.GRAY);
 
@@ -154,6 +169,8 @@ public class Room implements ForwardingAudience {
             Title title = Title.title(mainTitle, subtitle, times);
 
             showTitle(title);
+
+            startTime.getAndIncrement();
 
             playSound(Sound.sound(Key.key("minecraft:block.dispenser.dispense"), Sound.Source.MASTER, 1, 1));
 
@@ -172,7 +189,14 @@ public class Room implements ForwardingAudience {
      */
     public void release() {
         status = RoomStatus.WAITING;
-        showBossBar(bossBar);
+
+        for (Party party : parties) {
+            party.setRoom(null);
+            parties.remove(party);
+            party.hideBossBar(bossBar);
+        }
+
+        partyUpdated();
     }
 
     boolean isLocked() {
@@ -182,5 +206,17 @@ public class Room implements ForwardingAudience {
     @Override
     public @NotNull Iterable<? extends Audience> audiences() {
         return parties;
+    }
+
+    public Stream<Player> getPlayers() {
+        return parties.stream().map(Party::getMembers).flatMap(Set::stream);
+    }
+
+    public @NotNull Set<Party> getParties() {
+        return parties;
+    }
+
+    public @NotNull MiniGame getGame() {
+        return game;
     }
 }

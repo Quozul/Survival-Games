@@ -1,7 +1,9 @@
 package dev.quozul.UHC.Listeners;
 
-import dev.quozul.UHC.Commands.StartCommand;
 import dev.quozul.UHC.Main;
+import dev.quozul.UHC.SurvivalGame;
+import dev.quozul.minigame.Party;
+import dev.quozul.minigame.Room;
 import org.bukkit.*;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -44,10 +46,17 @@ public class GameListeners implements Listener {
             player.getScoreboardTags().add("died");
 
             // Evaluate UHC end
-            if (StartCommand.game.evaluateUHC()) StartCommand.game.endGame(); // TODO: Remove these static variables
+            Room room = Room.getRoom(player);
+            if (room != null) {
+                SurvivalGame game = (SurvivalGame) room.getGame();
+                if (game.evaluateUHC()) {
+                    game.end();
+                }
+            }
 
-            if (player.getKiller() != null)
+            if (player.getKiller() != null) {
                 player.sendMessage(String.format("§7%s avait %.0f points de vie", player.getKiller().getDisplayName(), Math.ceil(player.getKiller().getHealth())));
+            }
         }
     }
 
@@ -76,13 +85,9 @@ public class GameListeners implements Listener {
             player.getScoreboardTags().remove("playing");
         }
 
-        Team team = player.getScoreboard().getPlayerTeam(player);
-        if (team != null) {
-            team.removePlayer(player);
-
-            if (team.getSize() == 0) {
-                team.unregister();
-            }
+        Party party = Party.getParty(player);
+        if (party != null) {
+            party.forceLeave(player);
         }
     }
 

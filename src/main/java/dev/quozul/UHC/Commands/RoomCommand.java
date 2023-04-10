@@ -5,7 +5,8 @@ import co.aikar.commands.ConditionFailedException;
 import co.aikar.commands.PaperCommandManager;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.Description;
-import dev.quozul.minigame.ExampleMiniGame;
+import dev.quozul.UHC.Main;
+import dev.quozul.UHC.SurvivalGame;
 import dev.quozul.minigame.Party;
 import dev.quozul.minigame.Room;
 import dev.quozul.minigame.exceptions.PartyIncompatibleException;
@@ -22,7 +23,7 @@ record PlayerParty(@NotNull Party party) {
 
 @CommandAlias("room")
 public class RoomCommand extends BaseCommand {
-    Room room = new Room(new ExampleMiniGame());
+    private final Room room = new Room(new SurvivalGame(Main.plugin.getConfig().getInt("game-duration"), Main.plugin.getConfig().getInt("border-radius")));
 
     public RoomCommand(PaperCommandManager manager) {
         manager.getCommandContexts().registerIssuerOnlyContext(PlayerParty.class, supplier -> {
@@ -92,7 +93,7 @@ public class RoomCommand extends BaseCommand {
                 throw new ConditionFailedException("Ton équipe n'est pas dans une salle d'attente.");
             }
         } catch (RoomInGameException e) {
-            throw new ConditionFailedException("L'équipe n'est pas dans une salle d'attente.");
+            throw new ConditionFailedException("L'équipe est dans une partie en cours.");
         }
 
         party.party().sendMessage(Component.text("Salle d'attente quittée.", NamedTextColor.GRAY));

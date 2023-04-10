@@ -1,20 +1,71 @@
 package dev.quozul.UHC.Listeners;
 
+import dev.quozul.UHC.CustomRenderer;
 import dev.quozul.UHC.Events.SurvivalGameStartEvent;
+import dev.quozul.UHC.SurvivalGame;
+import dev.quozul.minigame.Party;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.MapMeta;
+import org.bukkit.map.MapView;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scoreboard.*;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Score;
+import org.bukkit.scoreboard.Scoreboard;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class GameStart implements Listener {
-    private static double circle = Math.PI * 2;
+    private final static double circle = Math.PI * 2;
+    private final static Map<Integer, MapView.Scale> sizes = new HashMap<>();
+
+    public GameStart() {
+        sizes.put(128, MapView.Scale.CLOSEST);
+        sizes.put(256, MapView.Scale.CLOSE);
+        sizes.put(512, MapView.Scale.NORMAL);
+        sizes.put(1024, MapView.Scale.FAR);
+        sizes.put(2048, MapView.Scale.FARTHEST);
+    }
+
+    private MapView.Scale getMapScale(SurvivalGame game) {
+        int initial = game.getInitialBorderRadius();
+
+        for (Map.Entry<Integer, MapView.Scale> entry : sizes.entrySet()) {
+            if (initial <= entry.getKey()) {
+                return entry.getValue();
+            }
+        }
+        return MapView.Scale.CLOSEST;
+    }
+
+    private ItemStack getMap(World world, SurvivalGame game, MapView.Scale scale) {
+        MapView view = Bukkit.createMap(world);
+
+        CustomRenderer renderer = new CustomRenderer(game);
+        view.addRenderer(renderer);
+
+        view.setCenterX(0);
+        view.setCenterZ(0);
+        view.setScale(scale);
+
+        ItemStack item = new ItemStack(Material.FILLED_MAP, 1);
+
+        MapMeta meta = (MapMeta) item.getItemMeta();
+        meta.setMapView(view);
+
+        item.setItemMeta(meta);
+
+        return item;
+    }
 
     @EventHandler
     public void onSurvivalGameStart(SurvivalGameStartEvent event) {
@@ -41,36 +92,30 @@ public class GameStart implements Listener {
             world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
         }
 
-        @NotNull Set<Team> teams = Bukkit.getServer().getScoreboardManager().getMainScoreboard().getTeams();
+        @NotNull Set<Party> parties = event.getGame().getParties();
 
         // Count teams with at least 1 player
-        long filledTeams = teams.stream().filter(team -> team.getSize() > 0).count();
+        long filledTeams = parties.stream().filter(team -> team.getSize() > 0).count();
 
         double radiusBetweenTeams = circle / filledTeams;
         double salt = Math.random() * circle;
         int i = 0;
 
-        for (Team team : teams) {
-            if (team.getSize() > 0) {
-                i++;
+        for (Party party : parties) {
+            i++;
 
-                for (String entry : team.getEntries()) {
-                    Player player = Bukkit.getPlayer(entry);
+            for (Player player : party.getMembers()) {
+                // Teleports every player with their team to an equal distance from each others
+                int x = (int) Math.round(Math.cos(i * radiusBetweenTeams + salt) * (event.getGame().getInitialBorderRadius() / 2.5));
+                int z = (int) Math.round(Math.sin(i * radiusBetweenTeams + salt) * (event.getGame().getInitialBorderRadius() / 2.5));
 
-                    if (player != null) {
-                        // Teleports every players with their team to a equal distance from each others
-                        int x = (int) Math.round(Math.cos(i * radiusBetweenTeams + salt) * (event.getGame().getInitialBorderRadius() / 2.5));
-                        int z = (int) Math.round(Math.sin(i * radiusBetweenTeams + salt) * (event.getGame().getInitialBorderRadius() / 2.5));
+                World world = Bukkit.getWorld(event.getGame().getWorldName());
+                Location loc = new Location(world, x, 255, z);
 
-                        World world = Bukkit.getWorld(event.getGame().getWorldName());
-                        Location loc = new Location(world, x, 255, z);
+                player.teleport(loc);
 
-                        player.teleport(loc);
-
-                        // Add potion effects
-                        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, 999999, 0));
-                    }
-                }
+                // Add potion effects
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, 999999, 0));
             }
         }
 
@@ -84,7 +129,7 @@ public class GameStart implements Listener {
             player.setExp(0);
             player.setLevel(0);
 
-            // TODO: Give each player a map of the overworld
+            player.getInventory().addItem(getMap(player.getWorld(), event.getGame(), getMapScale(event.getGame())));
 
             // Play sound and display title on game start
             player.sendTitle("§6Bonne chance", "", 10, 40, 10);

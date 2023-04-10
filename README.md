@@ -40,6 +40,7 @@ The plugin is currently only in French, will be translated asap.
 - [ ] Dead players can _sponsor_ (like in the Hunger Games movie) alive players by spending kills they made during the
   current game (give random item from a loot table)
 - [ ] Scoreboard for won, played and list games
-- [ ] Add a `/wanttoplay` command, start countdown when 2 or more players ran the command and has a team
+- [x] Add a `/room join` command, start countdown when 2 or more players ran the command and has a team
+  > For testing purposes, this is currently set to 1 player required.
 - [ ] Add a GUI menu for team management
-- [ ] Give each player a map with markers for the loots
+- [x] Give each player a map with markers for the loots

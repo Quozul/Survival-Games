@@ -96,6 +96,9 @@ public class Party implements ForwardingAudience {
         this.room = room;
     }
 
+    /**
+     * @return The amount of players in the party.
+     */
     public int getSize() {
         return members.size();
     }
@@ -132,6 +135,10 @@ public class Party implements ForwardingAudience {
             throw new RoomInGameException();
         }
 
+        forceLeave(player);
+    }
+
+    public void forceLeave(Player player) {
         team.removePlayer(player);
         members.remove(player);
 
@@ -141,7 +148,9 @@ public class Party implements ForwardingAudience {
             unregister(this);
         }
 
-        room.partyUpdated();
+        if (room != null) {
+            room.partyUpdated();
+        }
     }
 
     @Override
