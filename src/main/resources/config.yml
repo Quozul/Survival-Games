@@ -18,6 +18,9 @@ lobby-world-name: 'world'
 # Delay in second a chest try to spawn
 chest-delay: 60
 
-# Change for a chest to spawn (between 0 and 1)
+# Change for a chest to spawn (between 0.0 and 1.0)
 # Set to 0 for no chests
 chest-chance: 0.5
+
+# Duration in seconds for the chest to fall in seconds
+chest-fall-duration: 25

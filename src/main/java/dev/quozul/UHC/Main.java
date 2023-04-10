@@ -8,7 +8,6 @@ import dev.quozul.UHC.Commands.StartCommand;
 import dev.quozul.UHC.Listeners.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.IOException;
 import java.util.Locale;
 
 public class Main extends JavaPlugin {
@@ -37,18 +36,11 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new GameTick(), this);
         getServer().getPluginManager().registerEvents(new GameEnd(), this);
         getServer().getPluginManager().registerEvents(new GameBossBars(), this);
-
-        SpawnChest spawnChest = new SpawnChest();
-        manager.registerCommand(spawnChest);
-        getServer().getPluginManager().registerEvents(spawnChest, this);
+        getServer().getPluginManager().registerEvents(new SpawnChest(), this);
 
         plugin.saveDefaultConfig();
 
-        try {
-            RegenWorlds.generateWorlds();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        RegenWorlds.generateWorlds();
     }
 
     @Override

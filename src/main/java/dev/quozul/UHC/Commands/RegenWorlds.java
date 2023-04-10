@@ -8,11 +8,9 @@ import dev.quozul.UHC.Main;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 
-import java.io.IOException;
-
 public class RegenWorlds extends BaseCommand {
 
-    static void regenerateWorld(String worldName, World.Environment worldEnvironment) throws IOException {
+    static void regenerateWorld(String worldName, World.Environment worldEnvironment) {
         World world = Bukkit.getServer().getWorld(worldName);
         if (world != null) {
             // Unload the world.
@@ -55,14 +53,14 @@ public class RegenWorlds extends BaseCommand {
         world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
     }
 
-    private static void regenerateUHCWorlds() throws IOException {
+    private static void regenerateUHCWorlds() {
         String worldName = Main.plugin.getConfig().getString("game-world-name");
 
         regenerateWorld(worldName, World.Environment.NORMAL);
         regenerateWorld(worldName + "_nether", World.Environment.NETHER);
     }
 
-    public static void generateWorlds() throws IOException {
+    public static void generateWorlds() {
         String worldName = Main.plugin.getConfig().getString("game-world-name");
 
         generateWorld(worldName, World.Environment.NORMAL);
@@ -75,11 +73,7 @@ public class RegenWorlds extends BaseCommand {
             return;
         }
 
-        try {
-            regenerateUHCWorlds();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        regenerateUHCWorlds();
     }
 
     @HelpCommand

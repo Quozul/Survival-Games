@@ -8,9 +8,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.*;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class GameStart implements Listener {
     private static double circle = Math.PI * 2;
@@ -40,12 +41,10 @@ public class GameStart implements Listener {
             world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
         }
 
-        // Count teams with at least 1 player
-        int filledTeams = 0;
+        @NotNull Set<Team> teams = Bukkit.getServer().getScoreboardManager().getMainScoreboard().getTeams();
 
-        List<Team> teams = new ArrayList<>(Bukkit.getServer().getScoreboardManager().getMainScoreboard().getTeams());
-        for (Team team : teams)
-            if (team.getSize() > 0) filledTeams++;
+        // Count teams with at least 1 player
+        long filledTeams = teams.stream().filter(team -> team.getSize() > 0).count();
 
         double radiusBetweenTeams = circle / filledTeams;
         double salt = Math.random() * circle;
