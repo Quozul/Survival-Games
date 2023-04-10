@@ -3,7 +3,11 @@ package dev.quozul.UHC.Listeners;
 import dev.quozul.UHC.Events.SurvivalGameTickEvent;
 import dev.quozul.UHC.Main;
 import io.papermc.paper.event.entity.EntityMoveEvent;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.title.Title;
 import org.bukkit.*;
 import org.bukkit.block.Barrel;
 import org.bukkit.block.Block;
@@ -24,6 +28,7 @@ import java.util.Random;
 
 public class SpawnChest implements Listener {
     private static final List<LootTables> LootTablesList = List.of(LootTables.ABANDONED_MINESHAFT, LootTables.BURIED_TREASURE, LootTables.DESERT_PYRAMID, LootTables.END_CITY_TREASURE, LootTables.IGLOO_CHEST, LootTables.JUNGLE_TEMPLE, LootTables.JUNGLE_TEMPLE_DISPENSER, LootTables.NETHER_BRIDGE, LootTables.PILLAGER_OUTPOST, LootTables.BASTION_TREASURE, LootTables.BASTION_OTHER, LootTables.BASTION_BRIDGE, LootTables.BASTION_HOGLIN_STABLE, LootTables.ANCIENT_CITY, LootTables.ANCIENT_CITY_ICE_BOX, LootTables.RUINED_PORTAL, LootTables.SHIPWRECK_MAP, LootTables.SHIPWRECK_SUPPLY, LootTables.SHIPWRECK_TREASURE, LootTables.SIMPLE_DUNGEON, LootTables.SPAWN_BONUS_CHEST, LootTables.STRONGHOLD_CORRIDOR, LootTables.STRONGHOLD_CROSSING, LootTables.STRONGHOLD_LIBRARY, LootTables.UNDERWATER_RUIN_BIG, LootTables.UNDERWATER_RUIN_SMALL);
+    private static final NamespacedKey namespace = new NamespacedKey(Main.plugin, "loot");
     private final double chestChance = Main.plugin.getConfig().getDouble("chest-chance");
     private final int chestDelay = Main.plugin.getConfig().getInt("chest-delay");
     private final int fallDuration = Main.plugin.getConfig().getInt("chest-fall-duration");
@@ -61,15 +66,30 @@ public class SpawnChest implements Listener {
             Location location = new Location(world, (Math.random() * size - size / 2) * 0.75, 0, (Math.random() * size - size / 2) * 0.75);
             location.setY(world.getHighestBlockYAt(location) + fallDuration * 2);
 
-            // TODO: Use Kyori's messages
-            // Announce
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                player.sendTitle("§6§lCoffre apparu", "", 10, 40, 10);
-                player.sendMessage(String.format("§7Coffre apparu aux coordonnées : %.0f/%.0f/%.0f (à %.0f blocs d'ici)", location.getX(), location.getY(), location.getZ(), location.distance(player.getLocation())));
-                player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
-            }
-
             spawnChest(location);
+            event.getGame().addChest(location);
+
+            // Announce
+            Component mainTitle = Component.text("Coffre apparu", NamedTextColor.GOLD);
+            Title title = Title.title(mainTitle, Component.empty());
+
+            event.getGame().showTitle(title);
+            event.getGame().playSound(Sound.sound(Key.key("minecraft:entity.player.levelup"), Sound.Source.MASTER, 1, 1));
+
+            for (Player player : event.getGame().getPlayers()) {
+                // TODO: Use MiniMessages
+                location.setY(player.getLocation().getY()); // To calculate the distance without taking Y into account
+
+                Component component = Component.text("Coffre apparu aux coordonnées : ")
+                        .append(Component.text(Math.round(location.getX())))
+                        .append(Component.text("/"))
+                        .append(Component.text(Math.round(location.getZ())))
+                        .append(Component.text(" (à "))
+                        .append(Component.text(Math.round(location.distance(player.getLocation()))))
+                        .append(Component.text(" blocs d'ici)"))
+                        .color(NamedTextColor.GRAY);
+                player.sendMessage(component);
+            }
         }
     }
 
@@ -89,8 +109,6 @@ public class SpawnChest implements Listener {
             }
         }
     }
-
-    static NamespacedKey namespace = new NamespacedKey(Main.plugin, "loot");
 
     @EventHandler
     public void onEntityChangeBlock(EntityMoveEvent event) {

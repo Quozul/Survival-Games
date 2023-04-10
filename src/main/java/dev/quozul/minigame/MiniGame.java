@@ -6,8 +6,6 @@ import org.jetbrains.annotations.NotNull;
 public interface MiniGame {
     void start(Room room);
 
-    void tick();
-
     void end();
 
     @NotNull RoomRequirements getRequirements();
