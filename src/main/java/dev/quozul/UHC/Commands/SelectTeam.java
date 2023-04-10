@@ -1,5 +1,6 @@
 package dev.quozul.UHC.Commands;
 
+import dev.quozul.UHC.Main;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -33,7 +34,7 @@ class SelectTeamHolder implements InventoryHolder {
 public class SelectTeam implements Listener {
 
     private static Map<ChatColor, DyeColor> ChatToDye = new HashMap<>();
-    private final static @NotNull NamespacedKey namespace = new NamespacedKey("quozul", "data_container");
+    private final static @NotNull NamespacedKey namespace = new NamespacedKey(Main.plugin, "data_container");
 
     public SelectTeam() {
         ChatToDye.put(ChatColor.AQUA, DyeColor.CYAN);

@@ -25,7 +25,7 @@ The plugin is currently only in French, will be translated asap.
     - Random spawn within the border
     - Uses a world for the game that can be regenerated
     - Teams
-- Random loot chests on map (as colored shulker boxes with in-game loot tables)
+- Random loot chests on map (as a barrel with in-game loot tables)
     - Display distance to player from chest
 - Boss bars that indicates...
     - the x/z position of the player and relative to the border's radius
@@ -42,3 +42,4 @@ The plugin is currently only in French, will be translated asap.
 - [ ] Scoreboard for won, played and list games
 - [ ] Add a `/wanttoplay` command, start countdown when 2 or more players ran the command and has a team
 - [ ] Add a GUI menu for team management
+- [ ] Give each player a map with markers for the loots
