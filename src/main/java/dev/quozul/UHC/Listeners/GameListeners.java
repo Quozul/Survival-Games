@@ -48,8 +48,8 @@ public class GameListeners implements Listener {
             // Evaluate UHC end
             Room room = Room.getRoom(player);
             if (room != null) {
-                SurvivalGame game = (SurvivalGame) room.getGame();
-                if (game.evaluateUHC()) {
+                SurvivalGame game = (SurvivalGame) room.getSession().getGame();
+                if (game.isEnded()) {
                     game.end();
                 }
             }

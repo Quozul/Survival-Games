@@ -9,6 +9,7 @@ import dev.quozul.UHC.Main;
 import dev.quozul.UHC.SurvivalGame;
 import dev.quozul.minigame.Party;
 import dev.quozul.minigame.Room;
+import dev.quozul.minigame.Session;
 import dev.quozul.minigame.exceptions.PartyIncompatibleException;
 import dev.quozul.minigame.exceptions.RoomInGameException;
 import net.kyori.adventure.text.Component;
@@ -23,7 +24,7 @@ record PlayerParty(@NotNull Party party) {
 
 @CommandAlias("room")
 public class RoomCommand extends BaseCommand {
-    private final Room room = new Room(new SurvivalGame(Main.plugin.getConfig().getInt("game-duration"), Main.plugin.getConfig().getInt("border-radius")));
+    private final Room room = new Room(new Session(new SurvivalGame(Main.plugin.getConfig().getInt("game-duration"), Main.plugin.getConfig().getInt("border-radius"))));
 
     public RoomCommand(PaperCommandManager manager) {
         manager.getCommandContexts().registerIssuerOnlyContext(PlayerParty.class, supplier -> {

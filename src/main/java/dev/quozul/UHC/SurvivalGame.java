@@ -3,47 +3,43 @@ package dev.quozul.UHC;
 import dev.quozul.UHC.Events.SurvivalGameEndEvent;
 import dev.quozul.UHC.Events.SurvivalGameStartEvent;
 import dev.quozul.UHC.Events.SurvivalGameTickEvent;
-import dev.quozul.minigame.MiniGame;
-import dev.quozul.minigame.Party;
-import dev.quozul.minigame.Room;
-import dev.quozul.minigame.RoomRequirements;
+import dev.quozul.minigame.*;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.audience.ForwardingAudience;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.bukkit.Bukkit.getPluginManager;
-import static org.bukkit.Bukkit.getScheduler;
 
-public class SurvivalGame implements MiniGame, ForwardingAudience {
-    private int gameTime;
+public class SurvivalGame implements MiniGame, ForwardingAudience, TimedGame, WorldGame, EndCondition {
     private final int gameDuration;
     private final int borderRadius;
-    private final String worldName;
-    private final String defaultWorldName;
+    private final String lobbyWorldName;
     public BossBar borderBossBar;
-
-    private int task;
-    private final int interval = 20;
-    private Room room;
+    private World world;
+    private Session session;
 
     /**
      * Returns if there are alive players in the game.
      */
-    public boolean evaluateUHC() {
-        return room.getPlayers()
-                .filter(player -> player.getGameMode() == GameMode.SURVIVAL)
-                .count() <= 1;
+    @Override
+    public boolean isEnded() {
+        for (Team team : session.getTeams()) {
+            for (Player player : team.getMembers()) {
+                if (player.getGameMode() == GameMode.SURVIVAL) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**
@@ -53,49 +49,29 @@ public class SurvivalGame implements MiniGame, ForwardingAudience {
      * @param borderRadius Radius of the border in blocks
      */
     public SurvivalGame(int duration, int borderRadius) {
-        this.gameTime = 0;
-        this.gameDuration = duration * 60 * 20;
+        gameDuration = duration * 60 * 20;
         this.borderRadius = borderRadius;
-        this.worldName = Main.plugin.getConfig().getString("game-world-name");
-        this.defaultWorldName = Main.plugin.getConfig().getString("lobby-world-name");
-        this.borderBossBar = BossBar.bossBar(Component.text("Bordure"), 0, BossBar.Color.RED, BossBar.Overlay.PROGRESS);
+
+        lobbyWorldName = Main.plugin.getConfig().getString("lobby-world-name");
+        borderBossBar = BossBar.bossBar(Component.text("Bordure"), 0, BossBar.Color.RED, BossBar.Overlay.PROGRESS);
     }
 
-    public List<Player> getPlayers() {
-        return room.getPlayers().toList();
+    public Set<Player> getPlayers() {
+        return session.getTeams().stream().map(Team::getMembers).flatMap(Set::stream).collect(Collectors.toSet());
     }
 
     @Override
     public void end() {
-        getScheduler().cancelTask(this.task);
         getPluginManager().callEvent(new SurvivalGameEndEvent(this));
-        room.release();
-    }
-
-    public String getWorldName() {
-        return this.worldName;
     }
 
     public String getDefaultWorldName() {
-        return this.defaultWorldName;
+        return this.lobbyWorldName;
     }
 
-    /**
-     * @return List of worlds used by the game
-     */
-    public List<World> getWorlds() {
-        List<World> worlds = new ArrayList<>();
-        worlds.add(Bukkit.getServer().getWorld(this.worldName));
-        worlds.add(Bukkit.getServer().getWorld(this.worldName + "_nether"));
-
-        return worlds;
-    }
-
-    /**
-     * @return Total game duration in Minecraft ticks
-     */
-    public int getGameDuration() {
-        return this.gameDuration;
+    @Override
+    public @NotNull World getWorld() {
+        return this.world;
     }
 
     /**
@@ -109,25 +85,15 @@ public class SurvivalGame implements MiniGame, ForwardingAudience {
      * @return Current game time in Minecraft ticks
      */
     public int getGameTime() {
-        return this.gameTime;
+        return session.getElapsedTime();
     }
 
     @Override
-    public void start(Room room) {
-        this.room = room;
-        getPluginManager().callEvent(new SurvivalGameStartEvent(this));
+    public void start(Session session) {
+        this.session = session;
         chests.clear();
 
-        this.task = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(Main.plugin, () -> {
-            this.gameTime += interval;
-
-            getPluginManager().callEvent(new SurvivalGameTickEvent(this));
-
-            if (this.gameTime >= this.gameDuration && evaluateUHC()) {
-                this.end();
-            }
-
-        }, 0, interval);
+        getPluginManager().callEvent(new SurvivalGameStartEvent(this));
     }
 
     @Override
@@ -141,12 +107,17 @@ public class SurvivalGame implements MiniGame, ForwardingAudience {
     }
 
     @Override
-    public @NotNull Iterable<? extends Audience> audiences() {
-        return room.audiences();
+    public @NotNull TeamCompositor getCompositor() {
+        return TeamCompositor.teamsOfOne();
     }
 
-    public Set<Party> getParties() {
-        return room.getParties();
+    @Override
+    public @NotNull Iterable<? extends Audience> audiences() {
+        return session.audiences();
+    }
+
+    public Set<Team> getTeams() {
+        return session.getTeams();
     }
 
     private final List<Location> chests = new ArrayList<>();
@@ -157,5 +128,45 @@ public class SurvivalGame implements MiniGame, ForwardingAudience {
 
     public void addChest(Location location) {
         chests.add(location);
+    }
+
+    @Override
+    public void tick() {
+        getPluginManager().callEvent(new SurvivalGameTickEvent(this));
+    }
+
+    @Override
+    public long getGameDuration() {
+        return gameDuration;
+    }
+
+    @Override
+    public void configureWorldCreator(@NotNull WorldCreator worldCreator) {
+        worldCreator.environment(World.Environment.NORMAL);
+        worldCreator.type(WorldType.NORMAL);
+    }
+
+    @Override
+    public void configureWorld(@NotNull World world) {
+        WorldBorder worldBorder = world.getWorldBorder();
+
+        int startSize = Main.plugin.getConfig().getInt("border-radius");
+        worldBorder.setCenter(0, 0);
+        worldBorder.setSize(startSize);
+        worldBorder.setDamageAmount(0);
+        worldBorder.setDamageBuffer(0);
+
+        // Reset time
+        world.setFullTime(0);
+
+        // Set gamerules
+        world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
+        world.setGameRule(GameRule.DO_INSOMNIA, false);
+        world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
+    }
+
+    @Override
+    public void setWorld(@NotNull World world) {
+        this.world = world;
     }
 }

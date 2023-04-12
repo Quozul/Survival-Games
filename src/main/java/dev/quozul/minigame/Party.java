@@ -104,14 +104,14 @@ public class Party implements ForwardingAudience {
     }
 
     public void invitePlayer(Player player) throws RoomInGameException {
-        if (room != null && room.isLocked()) {
+        if (room != null && !room.getSession().isOpen()) {
             throw new RoomInGameException();
         }
         invitedPlayers.add(player);
     }
 
     public void join(Player player) throws RoomInGameException, PartyIsPrivate {
-        if (room != null && room.isLocked()) {
+        if (room != null && !room.getSession().isOpen()) {
             throw new RoomInGameException();
         }
 
@@ -131,7 +131,7 @@ public class Party implements ForwardingAudience {
     }
 
     public void leave(Player player) throws RoomInGameException {
-        if (room != null && room.isLocked()) {
+        if (room != null && !room.getSession().isOpen()) {
             throw new RoomInGameException();
         }
 

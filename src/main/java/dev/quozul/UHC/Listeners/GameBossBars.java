@@ -5,7 +5,6 @@ import dev.quozul.UHC.Events.SurvivalGameStartEvent;
 import dev.quozul.UHC.Events.SurvivalGameTickEvent;
 import dev.quozul.UHC.SurvivalGame;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -19,7 +18,7 @@ public class GameBossBars implements Listener {
 
     @EventHandler
     public void onSurvivalGameTick(SurvivalGameTickEvent event) {
-        double borderSize = Bukkit.getServer().getWorld(event.getGame().getWorldName()).getWorldBorder().getSize();
+        double borderSize = event.getGame().getWorld().getWorldBorder().getSize();
         double bossBarPercentage = borderSize / (float) event.getGame().getInitialBorderRadius();
         double borderRadius = borderSize / 2;
 

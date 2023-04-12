@@ -2,7 +2,6 @@ package dev.quozul.UHC;
 
 import co.aikar.commands.PaperCommandManager;
 import dev.quozul.UHC.Commands.PartyCommand;
-import dev.quozul.UHC.Commands.RegenWorlds;
 import dev.quozul.UHC.Commands.RoomCommand;
 import dev.quozul.UHC.Commands.SelectTeam;
 import dev.quozul.UHC.Listeners.*;
@@ -25,7 +24,6 @@ public class Main extends JavaPlugin {
         manager.getLocales().setDefaultLocale(Locale.FRENCH);
 
         // Register commands
-        manager.registerCommand(new RegenWorlds());
         manager.registerCommand(new RoomCommand(manager));
         manager.registerCommand(new PartyCommand());
 
@@ -38,8 +36,6 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SpawnChest(), this);
 
         plugin.saveDefaultConfig();
-
-        RegenWorlds.generateWorlds();
     }
 
     @Override

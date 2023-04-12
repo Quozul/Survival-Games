@@ -61,7 +61,7 @@ public class SpawnChest implements Listener {
     public void onGameTicks(SurvivalGameTickEvent event) {
         // Spawn chest every minutes
         if (event.getGame().getGameTime() % (chestDelay * 20) == 0 && Math.random() < chestChance) {
-            World world = Bukkit.getServer().getWorld(event.getGame().getWorldName());
+            World world = event.getGame().getWorld();
             double size = world.getWorldBorder().getSize();
             Location location = new Location(world, (Math.random() * size - size / 2) * 0.75, 0, (Math.random() * size - size / 2) * 0.75);
             location.setY(world.getHighestBlockYAt(location) + fallDuration * 2);
@@ -101,11 +101,7 @@ public class SpawnChest implements Listener {
             Barrel state = (Barrel) block.getState();
 
             if (state.getPersistentDataContainer().has(namespace)) {
-                if (state.getInventory().isEmpty()) {
-                    event.setDropItems(false);
-                } else {
-                    event.setCancelled(true);
-                }
+                event.setCancelled(true);
             }
         }
     }
@@ -115,16 +111,17 @@ public class SpawnChest implements Listener {
         Entity entity = event.getEntity();
         PersistentDataContainer dataContainer = entity.getPersistentDataContainer();
 
-        if (dataContainer.has(namespace) && entity.isOnGround()) {
+        if (dataContainer.has(namespace) && (entity.isOnGround() || entity.isInWater())) {
             // Remove falling entity
             for (Entity passenger : entity.getPassengers()) {
                 passenger.remove();
             }
 
             entity.remove();
+            World world = entity.getWorld();
 
             // Set block
-            Block block = entity.getWorld().getBlockAt(entity.getLocation());
+            Block block = world.getBlockAt(entity.getLocation());
             block.setType(Material.BARREL);
 
             // Set random loot table
@@ -134,6 +131,13 @@ public class SpawnChest implements Listener {
             barrel.customName(Component.text(lootTables.name()));
             barrel.getPersistentDataContainer().set(namespace, PersistentDataType.BYTE, (byte) 1);
             barrel.update();
+
+            BlockData blockData = Bukkit.createBlockData(Material.BARREL);
+
+            BlockDisplay blockDisplay = (BlockDisplay) world.spawnEntity(block.getLocation(), EntityType.BLOCK_DISPLAY);
+            blockDisplay.setBlock(blockData);
+            blockDisplay.setTransformation(new Transformation(new Vector3f(0.05F, 0.05F, 0.05F), new AxisAngle4f(), new Vector3f(0.9F, 0.9F, 0.9F), new AxisAngle4f()));
+            blockDisplay.setGlowing(true);
         }
     }
 }
