@@ -3,7 +3,7 @@ package dev.quozul.UHC.Listeners;
 import dev.quozul.UHC.CustomRenderer;
 import dev.quozul.UHC.Events.SurvivalGameStartEvent;
 import dev.quozul.UHC.SurvivalGame;
-import dev.quozul.minigame.Party;
+import dev.quozul.minigame.Team;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -20,7 +20,6 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -69,47 +68,25 @@ public class GameStart implements Listener {
 
     @EventHandler
     public void onSurvivalGameStart(SurvivalGameStartEvent event) {
-        // Set the world border for each world to the default one
-        List<World> worlds = event.getGame().getWorlds();
+        World world = event.getGame().getWorld();
 
-        for (World world : worlds) {
-            // World border
-            WorldBorder worldBorder = world.getWorldBorder();
-
-            worldBorder.setCenter(0, 0);
-            worldBorder.setSize(event.getGame().getInitialBorderRadius());
-            worldBorder.setDamageAmount(1);
-
-            worldBorder.setSize(1, event.getGame().getGameDuration() / 20);
-
-            // Reset time
-            world.setFullTime(0);
-            world.setStorm(false);
-
-            // Set gamerules
-            world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, true);
-            world.setGameRule(GameRule.DO_INSOMNIA, false);
-            world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
-        }
-
-        @NotNull Set<Party> parties = event.getGame().getParties();
+        @NotNull Set<Team> teams = event.getGame().getTeams();
 
         // Count teams with at least 1 player
-        long filledTeams = parties.stream().filter(team -> team.getSize() > 0).count();
+        long filledTeams = teams.stream().filter(team -> team.getSize() > 0).count();
 
         double radiusBetweenTeams = circle / filledTeams;
         double salt = Math.random() * circle;
         int i = 0;
 
-        for (Party party : parties) {
+        for (Team team : teams) {
             i++;
 
-            for (Player player : party.getMembers()) {
+            for (Player player : team.getMembers()) {
                 // Teleports every player with their team to an equal distance from each others
                 int x = (int) Math.round(Math.cos(i * radiusBetweenTeams + salt) * (event.getGame().getInitialBorderRadius() / 2.5));
                 int z = (int) Math.round(Math.sin(i * radiusBetweenTeams + salt) * (event.getGame().getInitialBorderRadius() / 2.5));
 
-                World world = Bukkit.getWorld(event.getGame().getWorldName());
                 Location loc = new Location(world, x, 255, z);
 
                 player.teleport(loc);

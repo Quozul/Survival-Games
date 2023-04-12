@@ -1,39 +1,29 @@
 package dev.quozul.UHC.Commands;
 
-import co.aikar.commands.BaseCommand;
-import co.aikar.commands.CommandHelp;
-import co.aikar.commands.annotation.Default;
-import co.aikar.commands.annotation.HelpCommand;
 import dev.quozul.UHC.Main;
 import org.bukkit.*;
-import org.bukkit.command.CommandSender;
 
-public class RegenWorlds extends BaseCommand {
+import static org.bukkit.Bukkit.getServer;
 
-    static void regenerateWorld(String worldName, World.Environment worldEnvironment) {
-        World world = Bukkit.getServer().getWorld(worldName);
-        if (world != null) {
-            // Unload the world.
-            Bukkit.getServer().unloadWorld(world, false);
+public class RegenWorlds {
+    public static void removeWorld(World world) {
+        // Unload the world.
+        getServer().unloadWorld(world, false);
 
-            // Unload the chunks.
-            Chunk[] chunks = world.getLoadedChunks();
-
-            for (Chunk chunk : chunks)
-                chunk.unload(false);
-
-            world.getWorldFolder().delete();
+        // Unload the chunks.
+        for (Chunk chunk : world.getLoadedChunks()) {
+            chunk.unload(false);
         }
 
-        generateWorld(worldName, worldEnvironment);
+        world.getWorldFolder().delete();
     }
 
-    static void generateWorld(String worldName, World.Environment worldEnvironment) {
+    public static World generateWorld(String worldName) {
         // Generating worlds
-        WorldCreator uhcWorldCreator = new WorldCreator(worldName);
-        uhcWorldCreator.environment(worldEnvironment);
-        uhcWorldCreator.type(WorldType.NORMAL);
-        World world = uhcWorldCreator.createWorld();
+        WorldCreator worldCreator = new WorldCreator(worldName);
+        worldCreator.environment(World.Environment.NORMAL);
+        worldCreator.type(WorldType.NORMAL);
+        World world = worldCreator.createWorld();
 
         assert world != null;
         WorldBorder worldBorder = world.getWorldBorder();
@@ -51,33 +41,7 @@ public class RegenWorlds extends BaseCommand {
         world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
         world.setGameRule(GameRule.DO_INSOMNIA, false);
         world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
-    }
 
-    private static void regenerateUHCWorlds() {
-        String worldName = Main.plugin.getConfig().getString("game-world-name");
-
-        regenerateWorld(worldName, World.Environment.NORMAL);
-        regenerateWorld(worldName + "_nether", World.Environment.NETHER);
-    }
-
-    public static void generateWorlds() {
-        String worldName = Main.plugin.getConfig().getString("game-world-name");
-
-        generateWorld(worldName, World.Environment.NORMAL);
-        generateWorld(worldName + "_nether", World.Environment.NETHER);
-    }
-
-    @Default
-    void onCommand(CommandSender commandSender) {
-        if (!commandSender.isOp()) {
-            return;
-        }
-
-        regenerateUHCWorlds();
-    }
-
-    @HelpCommand
-    void doHelp(CommandHelp help) {
-        help.showHelp();
+        return world;
     }
 }

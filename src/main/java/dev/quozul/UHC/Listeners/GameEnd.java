@@ -15,7 +15,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
-import java.util.List;
+import java.util.Set;
 
 
 public class GameEnd implements Listener {
@@ -47,7 +47,7 @@ public class GameEnd implements Listener {
 
         // Teleport players back to spawn after 10 seconds
         Bukkit.getServer().getScheduler().runTaskLater(Main.plugin, () -> {
-            List<? extends Player> players = event.getGame().getPlayers();
+            Set<Player> players = event.getGame().getPlayers();
             for (Player player : players) {
                 World world = Bukkit.getWorld(event.getGame().getDefaultWorldName());
                 Location loc = world.getSpawnLocation();
