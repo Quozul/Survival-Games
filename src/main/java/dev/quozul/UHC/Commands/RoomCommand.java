@@ -22,11 +22,19 @@ import java.util.stream.Collectors;
 record PlayerParty(@NotNull Party party) {
 }
 
+record OptionalPlayerParty(Party party) {
+}
+
 @CommandAlias("room")
 public class RoomCommand extends BaseCommand {
     private final Room room = new Room(new Session(new SurvivalGame(Main.plugin.getConfig().getInt("game-duration"), Main.plugin.getConfig().getInt("border-radius"))));
 
     public RoomCommand(PaperCommandManager manager) {
+        manager.getCommandContexts().registerIssuerOnlyContext(OptionalPlayerParty.class, supplier -> {
+            Party party = Party.getParty(supplier.getPlayer());
+            return new OptionalPlayerParty(party);
+        });
+
         manager.getCommandContexts().registerIssuerOnlyContext(PlayerParty.class, supplier -> {
             Party party = Party.getParty(supplier.getPlayer());
             if (party == null) {
@@ -52,16 +60,24 @@ public class RoomCommand extends BaseCommand {
     }
 
     @CommandAlias("join")
-    @Description("Rejoint une salle d'attente avec votre équipe actuelle.")
-    void onJoin(Player player, PlayerParty party) {
+    @Description("Rejoint une salle d'attente avec votre équipe actuelle. Créé une équipe avec 1 joueur si vous n'en avez pas.")
+    void onJoin(Player player, OptionalPlayerParty playerParty) {
         // TODO: Get room from argument
-        if (party.party().getOwner() == player) {
-            if (party.party().getRoom() != null) {
+        Party party;
+
+        if (playerParty.party() == null) {
+            party = new Party(player, false);
+        } else {
+            party = playerParty.party();
+        }
+
+        if (party.getOwner() == player) {
+            if (party.getRoom() != null) {
                 throw new ConditionFailedException("Votre équipe est déjà dans une salle d'attente.");
             }
 
             try {
-                room.addParty(party.party());
+                room.addParty(party);
             } catch (PartyIncompatibleException e) {
                 switch (e.getReason()) {
                     case NOT_ENOUGH_PLAYERS_IN_TEAM -> {
@@ -78,7 +94,7 @@ public class RoomCommand extends BaseCommand {
                 throw new ConditionFailedException("Une partie est déjà en cours dans cette salle.");
             }
 
-            party.party().sendMessage(Component.text("Salle d'attente rejointe.", NamedTextColor.GRAY));
+            party.sendMessage(Component.text("Salle d'attente rejointe.", NamedTextColor.GRAY));
         } else {
             throw new ConditionFailedException("Tu n'es pas le propriétaire de l'équipe.");
         }

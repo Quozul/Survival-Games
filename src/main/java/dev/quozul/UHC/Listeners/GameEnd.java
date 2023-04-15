@@ -1,21 +1,15 @@
 package dev.quozul.UHC.Listeners;
 
 import dev.quozul.UHC.Events.SurvivalGameEndEvent;
-import dev.quozul.UHC.Main;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-
-import java.util.Set;
 
 
 public class GameEnd implements Listener {
@@ -44,19 +38,5 @@ public class GameEnd implements Listener {
                     .append(winner.displayName().color(NamedTextColor.GOLD));
             event.getGame().sendMessage(component);
         }
-
-        // Teleport players back to spawn after 10 seconds
-        Bukkit.getServer().getScheduler().runTaskLater(Main.plugin, () -> {
-            Set<Player> players = event.getGame().getPlayers();
-            for (Player player : players) {
-                World world = Bukkit.getWorld(event.getGame().getDefaultWorldName());
-                Location loc = world.getSpawnLocation();
-
-                player.teleport(loc);
-                player.setGameMode(GameMode.ADVENTURE);
-
-                player.getScoreboardTags().remove("playing");
-            }
-        }, 200);
     }
 }
