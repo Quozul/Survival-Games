@@ -68,6 +68,7 @@ public class Room implements ForwardingAudience {
 
         party.setRoom(null);
         parties.remove(party);
+        party.hideBossBar(session.getBossBar());
 
         partyUpdated();
     }

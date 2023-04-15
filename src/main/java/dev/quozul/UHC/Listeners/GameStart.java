@@ -13,10 +13,6 @@ import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.map.MapView;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scoreboard.DisplaySlot;
-import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Score;
-import org.bukkit.scoreboard.Scoreboard;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -67,7 +63,7 @@ public class GameStart implements Listener {
     }
 
     @EventHandler
-    public void onSurvivalGameStart(SurvivalGameStartEvent event) {
+    void onSurvivalGameStart(SurvivalGameStartEvent event) {
         World world = event.getGame().getWorld();
 
         @NotNull Set<Team> teams = event.getGame().getTeams();
@@ -111,31 +107,6 @@ public class GameStart implements Listener {
             // Play sound and display title on game start
             player.sendTitle("§6Bonne chance", "", 10, 40, 10);
             player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1, 1);
-
-            // Create info scoreboard
-            Scoreboard board = Bukkit.getScoreboardManager().getMainScoreboard();
-
-            Objective infoObjective;
-            if (board.getObjective("UHCInfo") != null)
-                infoObjective = board.getObjective("UHCInfo");
-            else
-                infoObjective = board.registerNewObjective("UHCInfo", "dummy", "§6§lUHC");
-
-            Score borderRadius = infoObjective.getScore("§7» Rayon");
-            borderRadius.setScore(0);
-
-            infoObjective.setDisplaySlot(DisplaySlot.SIDEBAR);
-
-            // Create kill scoreboard
-            Objective killObjective;
-            if (board.getObjective("UHCKills") != null)
-                killObjective = board.getObjective("UHCKills");
-            else
-                killObjective = board.registerNewObjective("UHCKills", "playerKillCount", "§6§lKills");
-
-            killObjective.setDisplaySlot(DisplaySlot.BELOW_NAME);
-
-            player.setScoreboard(board);
 
             // Set player's gamemode
             player.setGameMode(GameMode.SURVIVAL);

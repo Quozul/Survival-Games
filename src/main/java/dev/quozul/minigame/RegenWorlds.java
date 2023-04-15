@@ -1,21 +1,36 @@
-package dev.quozul.UHC.Commands;
+package dev.quozul.minigame;
 
 import dev.quozul.UHC.Main;
+import dev.quozul.minigame.exceptions.WorldNotDeletedException;
 import org.bukkit.*;
 
 import static org.bukkit.Bukkit.getServer;
 
-public class RegenWorlds {
-    public static void removeWorld(World world) {
-        // Unload the world.
-        getServer().unloadWorld(world, false);
+class ChunkNotUnloadedException extends Throwable {
+    private final Chunk chunk;
 
+    public ChunkNotUnloadedException(Chunk chunk) {
+        this.chunk = chunk;
+    }
+
+    public Chunk getChunk() {
+        return chunk;
+    }
+}
+
+public class RegenWorlds {
+    public static void removeWorld(World world) throws WorldNotDeletedException {
         // Unload the chunks.
         for (Chunk chunk : world.getLoadedChunks()) {
             chunk.unload(false);
         }
 
-        world.getWorldFolder().delete();
+        // Unload the world.
+        getServer().unloadWorld(world, false);
+
+        if (!world.getWorldFolder().delete()) {
+            world.getWorldFolder().deleteOnExit();
+        }
     }
 
     public static World generateWorld(String worldName) {

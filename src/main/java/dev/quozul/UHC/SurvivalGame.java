@@ -61,8 +61,22 @@ public class SurvivalGame implements MiniGame, ForwardingAudience, TimedGame, Wo
     }
 
     @Override
-    public void end() {
+    public void onFinish() {
         getPluginManager().callEvent(new SurvivalGameEndEvent(this));
+    }
+
+    @Override
+    public void onUnload() {
+        // Teleport players back to spawn
+        for (Player player : getPlayers()) {
+            World world = Bukkit.getWorld(getDefaultWorldName());
+            Location loc = world.getSpawnLocation();
+
+            player.teleport(loc);
+            player.setGameMode(GameMode.ADVENTURE);
+
+            player.getScoreboardTags().remove("playing");
+        }
     }
 
     public String getDefaultWorldName() {
@@ -89,7 +103,7 @@ public class SurvivalGame implements MiniGame, ForwardingAudience, TimedGame, Wo
     }
 
     @Override
-    public void start(Session session) {
+    public void onStart(Session session) {
         this.session = session;
         chests.clear();
 

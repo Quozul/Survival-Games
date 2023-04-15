@@ -1,10 +1,15 @@
 package dev.quozul.UHC.Listeners;
 
 import dev.quozul.UHC.Main;
-import dev.quozul.UHC.SurvivalGame;
 import dev.quozul.minigame.Party;
-import dev.quozul.minigame.Room;
-import org.bukkit.*;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -17,57 +22,60 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scoreboard.Team;
 
 public class GameListeners implements Listener {
 
     @EventHandler
-    public void onPlayerMove(PlayerMoveEvent event) {
+    void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
 
         // Remove slow falling when player reach the ground
-        if (player.getScoreboardTags().contains("spawning") && player.isOnGround()) {
+        if (player.getScoreboardTags().contains("spawning") && (player.isOnGround() || player.isInWater())) {
             player.removePotionEffect(PotionEffectType.SLOW_FALLING);
             player.removeScoreboardTag("spawning");
         }
     }
 
     @EventHandler
-    public void onPlayerDie(PlayerDeathEvent event) {
+    void onPlayerDie(PlayerDeathEvent event) {
         Player player = event.getEntity();
 
         if (player.getScoreboardTags().contains("playing")) {
-            // Play death sound
+            event.setCancelled(true);
 
-            player.getWorld().playSound(player.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 1, 1);
+            org.bukkit.Sound deathSound = event.getDeathSound();
+            if (deathSound != null) {
+                player.getWorld().playSound(Sound.sound(deathSound.key(), Sound.Source.MASTER, event.getDeathSoundVolume(), event.getDeathSoundPitch()));
+            }
+
+            Component deathMessage = event.deathMessage();
+            if (deathMessage != null) {
+                player.getWorld().sendMessage(deathMessage);
+            }
+
+            // Play death sound
+            player.getWorld().playSound(Sound.sound(Key.key("entity.lightning_bolt.impact"), Sound.Source.MASTER, 1, 1));
             player.setHealth(20);
             player.setGameMode(GameMode.SPECTATOR);
 
             player.getScoreboardTags().add("died");
 
-            // Evaluate UHC end
-            Room room = Room.getRoom(player);
-            if (room != null) {
-                SurvivalGame game = (SurvivalGame) room.getSession().getGame();
-                if (game.isEnded()) {
-                    game.end();
-                }
-            }
+            Player killer = player.getKiller();
+            if (killer != null) {
+                Component message = killer.displayName()
+                        .appendSpace()
+                        .append(Component.text(String.format("avait %.0f points de vie.", Math.ceil(player.getKiller().getHealth())), NamedTextColor.GRAY));
 
-            if (player.getKiller() != null) {
-                player.sendMessage(String.format("§7%s avait %.0f points de vie", player.getKiller().getDisplayName(), Math.ceil(player.getKiller().getHealth())));
+                player.sendMessage(message);
             }
         }
     }
 
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
+    void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
         player.setGameMode(GameMode.ADVENTURE);
-
-        for (Team team : player.getScoreboard().getTeams())
-            team.removeEntry(player.getName());
 
         // Teleport player to default world
         World world = Bukkit.getWorld(Main.plugin.getConfig().getString("lobby-world-name"));
@@ -77,7 +85,7 @@ public class GameListeners implements Listener {
     }
 
     @EventHandler
-    public void onPlayerLeave(PlayerQuitEvent event) {
+    void onPlayerLeave(PlayerQuitEvent event) {
         Player player = event.getPlayer();
 
         if (player.getScoreboardTags().contains("playing")) {
@@ -92,27 +100,19 @@ public class GameListeners implements Listener {
     }
 
     @EventHandler
-    public void onPlayerPortal(PlayerPortalEvent event) {
-        String worldName = Main.plugin.getConfig().getString("game-world-name");
-
-        if (event.getFrom().getWorld().getName().equals(worldName)) {
-            event.getTo().setWorld(Bukkit.getWorld(worldName + "_nether"));
-        }
-
-        if (event.getFrom().getWorld().getName().equals(worldName + "_nether")) {
-            event.getTo().setWorld(Bukkit.getWorld(worldName));
-        }
+    void onPlayerPortal(PlayerPortalEvent event) {
+        event.setCancelled(true);
     }
 
     @EventHandler
-    public void onPlayerDamage(EntityDamageEvent event) {
+    void onPlayerDamage(EntityDamageEvent event) {
         if (event.getEntityType() == EntityType.PLAYER && ((Player) event.getEntity()).getGameMode() == GameMode.ADVENTURE) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler
-    public void onPlayerHunger(FoodLevelChangeEvent event) {
+    void onPlayerHunger(FoodLevelChangeEvent event) {
         if (event.getEntity().getGameMode() == GameMode.ADVENTURE) {
             event.setCancelled(true);
         }

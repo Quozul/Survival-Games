@@ -1,8 +1,8 @@
 package dev.quozul.minigame;
 
 
-import dev.quozul.UHC.Commands.RegenWorlds;
 import dev.quozul.UHC.Main;
+import dev.quozul.minigame.exceptions.WorldNotDeletedException;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.audience.ForwardingAudience;
 import net.kyori.adventure.bossbar.BossBar;
@@ -78,6 +78,7 @@ public class Session implements ForwardingAudience {
             bossBar.progress((float) startTime.get() / startDelay);
 
             if (startTime.get() >= startDelay) {
+                game.onLoad();
                 start(room);
                 clearStartTask();
             }
@@ -110,7 +111,7 @@ public class Session implements ForwardingAudience {
         status = SessionStatus.IN_GAME;
         room.hideBossBar(bossBar);
 
-        game.start(this);
+        game.onStart(this);
 
         if (game instanceof TimedGame) {
             long gameDuration = ((TimedGame) game).getGameDuration();
@@ -129,18 +130,26 @@ public class Session implements ForwardingAudience {
     }
 
     private void end() {
-        // TODO: Update end, might need to be in two steps: handle players and cleanup
         getScheduler().cancelTask(tickingGameTask);
-        status = SessionStatus.WAITING;
-        game.end();
+        game.onFinish();
 
-        if (game instanceof WorldGame) {
-            sendMessage(Component.text("Suppression du monde...", NamedTextColor.GRAY));
-            RegenWorlds.removeWorld(((WorldGame) game).getWorld());
-            sendMessage(Component.text("Monde supprimé!", NamedTextColor.GRAY));
-        }
+        // Unload game after 10 seconds
+        getScheduler().runTaskLater(Main.plugin, () -> {
+            game.onUnload();
 
-        teams.clear();
+            if (game instanceof WorldGame) {
+                try {
+                    sendMessage(Component.text("Suppression du monde...", NamedTextColor.GRAY));
+                    RegenWorlds.removeWorld(((WorldGame) game).getWorld());
+                    sendMessage(Component.text("Monde supprimé!", NamedTextColor.GRAY));
+                } catch (WorldNotDeletedException e) {
+                    sendMessage(Component.text("Le monde n'a pas été supprimé!", NamedTextColor.RED));
+                }
+            }
+
+            teams.clear();
+            status = SessionStatus.WAITING;
+        }, 200);
     }
 
     private void clearStartTask() {
@@ -169,5 +178,9 @@ public class Session implements ForwardingAudience {
 
     public int getElapsedTime() {
         return gameTime;
+    }
+
+    public BossBar getBossBar() {
+        return bossBar;
     }
 }
