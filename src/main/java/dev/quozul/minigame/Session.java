@@ -44,6 +44,7 @@ public class Session implements ForwardingAudience {
     private final BossBar bossBar;
     private int tickingGameTask;
     private int gameTime = 0;
+    private boolean isPreparing = false;
 
     public Session(MiniGame game) {
         this.game = game;
@@ -59,6 +60,7 @@ public class Session implements ForwardingAudience {
     }
 
     public void prepare(@NotNull Room room) {
+        isPreparing = true;
         AtomicInteger startTime = new AtomicInteger();
         room.showBossBar(bossBar);
 
@@ -88,6 +90,7 @@ public class Session implements ForwardingAudience {
     public void unprepare(@NotNull Room room) {
         clearStartTask();
         room.hideBossBar(bossBar);
+        isPreparing = false;
     }
 
     private void start(@NotNull Room room) {
@@ -182,5 +185,13 @@ public class Session implements ForwardingAudience {
 
     public BossBar getBossBar() {
         return bossBar;
+    }
+
+    public SessionStatus getStatus() {
+        return status;
+    }
+
+    public boolean isPreparing() {
+        return isPreparing;
     }
 }

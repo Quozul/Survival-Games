@@ -6,7 +6,6 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.audience.ForwardingAudience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
-import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -50,8 +49,6 @@ public class Party implements ForwardingAudience {
 
     @NotNull
     private final Set<Player> members = new HashSet<>();
-    @NotNull
-    private final Team team;
     @Nullable
     private Room room;
     @NotNull
@@ -60,32 +57,24 @@ public class Party implements ForwardingAudience {
     final private Set<Player> invitedPlayers = new HashSet<>();
     private boolean isPublic;
 
-    public Party(Player owner, boolean isPublic) {
+    public Party(@NotNull Player owner, boolean isPublic) {
         this.owner = owner;
-        this.team = owner.getScoreboard().registerNewTeam(owner.getName());
         this.isPublic = isPublic;
         members.add(owner);
         register(this);
     }
 
     public String getName() {
-        return team.getName();
+        return owner.getName();
     }
 
     public Component displayName() {
-        return team.displayName();
-    }
-
-    public Party(Player owner) {
-        this(owner, false);
+        return owner.displayName()
+                .append(Component.text("'s party"));
     }
 
     public @NotNull Player getOwner() {
         return owner;
-    }
-
-    public @NotNull Team getTeam() {
-        return team;
     }
 
     public @Nullable Room getRoom() {
@@ -117,10 +106,8 @@ public class Party implements ForwardingAudience {
 
         if (isPublic) {
             members.add(player);
-            team.addPlayer(player);
         } else if (invitedPlayers.contains(player)) {
             members.add(player);
-            team.addPlayer(player);
         } else {
             throw new PartyIsPrivate();
         }
@@ -139,12 +126,10 @@ public class Party implements ForwardingAudience {
     }
 
     public void forceLeave(Player player) {
-        team.removePlayer(player);
         members.remove(player);
 
         // Remove party if empty
         if (members.isEmpty()) {
-            team.unregister();
             unregister(this);
         }
 

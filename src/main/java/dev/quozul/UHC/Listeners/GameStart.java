@@ -31,7 +31,7 @@ public class GameStart implements Listener {
         sizes.put(2048, MapView.Scale.FARTHEST);
     }
 
-    private MapView.Scale getMapScale(SurvivalGame game) {
+    public static MapView.Scale getMapScale(SurvivalGame game) {
         int initial = game.getInitialBorderRadius();
 
         for (Map.Entry<Integer, MapView.Scale> entry : sizes.entrySet()) {
@@ -42,14 +42,16 @@ public class GameStart implements Listener {
         return MapView.Scale.CLOSEST;
     }
 
-    private ItemStack getMap(World world, SurvivalGame game, MapView.Scale scale) {
+    public static ItemStack getMap(World world, SurvivalGame game, MapView.Scale scale) {
         MapView view = Bukkit.createMap(world);
 
         CustomRenderer renderer = new CustomRenderer(game);
         view.addRenderer(renderer);
 
-        view.setCenterX(0);
-        view.setCenterZ(0);
+        Location center = world.getWorldBorder().getCenter();
+
+        view.setCenterX(center.getBlockX());
+        view.setCenterZ(center.getBlockZ());
         view.setScale(scale);
 
         ItemStack item = new ItemStack(Material.FILLED_MAP, 1);

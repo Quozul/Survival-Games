@@ -32,4 +32,6 @@ public interface MiniGame {
     @NotNull Component displayName();
 
     @NotNull TeamCompositor getCompositor();
+
+    @NotNull String getIdentifier();
 }

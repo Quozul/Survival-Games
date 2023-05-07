@@ -126,6 +126,11 @@ public class SurvivalGame implements MiniGame, ForwardingAudience, TimedGame, Wo
     }
 
     @Override
+    public @NotNull String getIdentifier() {
+        return "survival-game";
+    }
+
+    @Override
     public @NotNull Iterable<? extends Audience> audiences() {
         return session.audiences();
     }
@@ -162,13 +167,16 @@ public class SurvivalGame implements MiniGame, ForwardingAudience, TimedGame, Wo
 
     @Override
     public void configureWorld(@NotNull World world) {
+        // Configure world border
         WorldBorder worldBorder = world.getWorldBorder();
 
-        int startSize = Main.plugin.getConfig().getInt("border-radius");
         worldBorder.setCenter(0, 0);
-        worldBorder.setSize(startSize);
-        worldBorder.setDamageAmount(0);
+        worldBorder.setSize(getInitialBorderRadius());
+        worldBorder.setDamageAmount(1);
         worldBorder.setDamageBuffer(0);
+
+        // Make the world border reduce size
+        worldBorder.setSize(1, getGameDuration() / 20);
 
         // Reset time
         world.setFullTime(0);
@@ -177,6 +185,7 @@ public class SurvivalGame implements MiniGame, ForwardingAudience, TimedGame, Wo
         world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
         world.setGameRule(GameRule.DO_INSOMNIA, false);
         world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
+
     }
 
     @Override

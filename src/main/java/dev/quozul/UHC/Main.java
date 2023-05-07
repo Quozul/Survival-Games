@@ -24,8 +24,8 @@ public class Main extends JavaPlugin {
         manager.getLocales().setDefaultLocale(Locale.FRENCH);
 
         // Register commands
+        manager.registerCommand(new PartyCommand(manager));
         manager.registerCommand(new RoomCommand(manager));
-        manager.registerCommand(new PartyCommand());
 
         // Register events
         getServer().getPluginManager().registerEvents(new SelectTeam(), this);
@@ -36,6 +36,9 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SpawnChest(), this);
 
         plugin.saveDefaultConfig();
+
+        fr.pickaria.EnableKt.enableBedrockLibrary(this);
+        dev.quozul.minigame.RoomMenuKt.roomMenu();
     }
 
     @Override
