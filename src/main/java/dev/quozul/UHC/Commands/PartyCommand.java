@@ -3,6 +3,7 @@ package dev.quozul.UHC.Commands;
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.CommandHelp;
 import co.aikar.commands.ConditionFailedException;
+import co.aikar.commands.PaperCommandManager;
 import co.aikar.commands.annotation.*;
 import co.aikar.commands.bukkit.contexts.OnlinePlayer;
 import dev.quozul.minigame.Party;
@@ -13,8 +14,40 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 
+import java.util.stream.Collectors;
+
 @CommandAlias("party")
 public class PartyCommand extends BaseCommand {
+    public PartyCommand(PaperCommandManager manager) {
+        manager.getCommandContexts().registerIssuerOnlyContext(OptionalPlayerParty.class, supplier -> {
+            Party party = Party.getParty(supplier.getPlayer());
+            return new OptionalPlayerParty(party);
+        });
+
+        manager.getCommandContexts().registerIssuerOnlyContext(PlayerParty.class, supplier -> {
+            Party party = Party.getParty(supplier.getPlayer());
+            if (party == null) {
+                throw new ConditionFailedException("Tu n'es pas dans une équipe.");
+            }
+            return new PlayerParty(party);
+        });
+
+        manager.getCommandContexts().registerContext(Party.class, supplier -> {
+            Party party = Party.getParty(supplier.getFirstArg());
+            if (party == null) {
+                throw new ConditionFailedException("Cette équipe n'existe pas.");
+            }
+            return party;
+        });
+
+        manager.getCommandCompletions().registerCompletion("parties", handler -> Party
+                .getPublicParties()
+                .stream()
+                .map(Party::getName)
+                .collect(Collectors.toSet())
+        );
+    }
+
     @Default
     void onDefault(Player player, PlayerParty party) {
         Component members = party.party()

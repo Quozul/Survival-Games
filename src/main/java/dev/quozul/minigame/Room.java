@@ -10,7 +10,10 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Room implements ForwardingAudience {
@@ -26,6 +29,33 @@ public class Room implements ForwardingAudience {
         return null;
     }
 
+    public static @Nullable Room getRoom(String identifier) {
+        for (Room room : rooms) {
+            if (Objects.equals(room.getIdentifier(), identifier)) {
+                return room;
+            }
+        }
+        return null;
+    }
+
+    public static Set<Room> getOpenRooms() {
+        return rooms.stream()
+                .filter(room -> room.getSession().isOpen())
+                .collect(Collectors.toSet());
+    }
+
+    public static @NotNull Map<MiniGame, Set<Room>> getOpenRoomsPerGame() {
+        return rooms.stream()
+                .filter(room -> room.getSession().isOpen())
+                .collect(Collectors.groupingBy(room -> room.getSession().getGame(), Collectors.toSet()));
+    }
+
+    private static <T extends MiniGame> long getRoomOfGame(Class<T> gameClass) {
+        return rooms.stream()
+                .filter(room -> gameClass.isInstance(room.getSession().getGame()))
+                .count();
+    }
+
     private void register(Room room) {
         rooms.add(room);
     }
@@ -34,10 +64,17 @@ public class Room implements ForwardingAudience {
     private final Set<Party> parties = new HashSet<>();
     @NotNull
     private final Session session;
+    @NotNull
+    private final String identifier;
 
     public Room(@NotNull Session session) {
         this.session = session;
+        identifier = String.format("%s-%d", session.getGame().getIdentifier(), getRoomOfGame(session.getGame().getClass()) + 1);
         register(this);
+    }
+
+    public @NotNull String getIdentifier() {
+        return identifier;
     }
 
     public void addParty(Party party) throws RoomInGameException, PartyIncompatibleException {
@@ -74,9 +111,9 @@ public class Room implements ForwardingAudience {
     }
 
     void partyUpdated() {
-        if (canStart()) {
+        if (canStart() && !session.isPreparing()) {
             session.prepare(this);
-        } else {
+        } else if (!canStart()) {
             session.unprepare(this);
         }
     }
@@ -91,7 +128,7 @@ public class Room implements ForwardingAudience {
     /**
      * @return Amount of players in the room.
      */
-    private int getPlayerCount() {
+    public int getPlayerCount() {
         return parties.stream().map(Party::getSize).reduce(0, Integer::sum);
     }
 
