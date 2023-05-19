@@ -9,10 +9,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -56,6 +53,12 @@ public class Room implements ForwardingAudience {
                 .count();
     }
 
+    public static void fromGame(MiniGame game) {
+        Room room = new Room();
+        Session session = new Session(game, room);
+        room.setSession(session);
+    }
+
     private void register(Room room) {
         rooms.add(room);
     }
@@ -63,14 +66,18 @@ public class Room implements ForwardingAudience {
     @NotNull
     private final Set<Party> parties = new HashSet<>();
     @NotNull
-    private final Session session;
+    private Session session;
     @NotNull
-    private final String identifier;
+    private String identifier;
 
-    public Room(@NotNull Session session) {
+    public Room() {
+        this.identifier = UUID.randomUUID().toString();
+        register(this);
+    }
+
+    public void setSession(@NotNull Session session) {
         this.session = session;
         identifier = String.format("%s-%d", session.getGame().getIdentifier(), getRoomOfGame(session.getGame().getClass()) + 1);
-        register(this);
     }
 
     public @NotNull String getIdentifier() {
@@ -151,5 +158,11 @@ public class Room implements ForwardingAudience {
 
     public @NotNull Session getSession() {
         return session;
+    }
+
+    public void clear() throws RoomInGameException {
+        for (Party party : parties) {
+            removeParty(party);
+        }
     }
 }

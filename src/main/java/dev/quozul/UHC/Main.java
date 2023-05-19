@@ -36,9 +36,6 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SpawnChest(), this);
 
         plugin.saveDefaultConfig();
-
-        fr.pickaria.EnableKt.enableBedrockLibrary(this);
-        dev.quozul.minigame.RoomMenuKt.roomMenu();
     }
 
     @Override

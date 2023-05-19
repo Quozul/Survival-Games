@@ -2,6 +2,7 @@ package dev.quozul.minigame;
 
 
 import dev.quozul.UHC.Main;
+import dev.quozul.minigame.exceptions.RoomInGameException;
 import dev.quozul.minigame.exceptions.WorldNotDeletedException;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.audience.ForwardingAudience;
@@ -11,6 +12,7 @@ import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
+import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.jetbrains.annotations.NotNull;
@@ -45,9 +47,12 @@ public class Session implements ForwardingAudience {
     private int tickingGameTask;
     private int gameTime = 0;
     private boolean isPreparing = false;
+    @NotNull
+    private final Room room;
 
-    public Session(MiniGame game) {
+    public Session(MiniGame game, Room room) {
         this.game = game;
+        this.room = room;
         bossBar = BossBar.bossBar(game.displayName(), 0F, BossBar.Color.YELLOW, BossBar.Overlay.NOTCHED_6);
     }
 
@@ -142,16 +147,21 @@ public class Session implements ForwardingAudience {
 
             if (game instanceof WorldGame) {
                 try {
-                    sendMessage(Component.text("Suppression du monde...", NamedTextColor.GRAY));
                     RegenWorlds.removeWorld(((WorldGame) game).getWorld());
-                    sendMessage(Component.text("Monde supprimé!", NamedTextColor.GRAY));
+                    Bukkit.getLogger().warning("World deleted!");
                 } catch (WorldNotDeletedException e) {
-                    sendMessage(Component.text("Le monde n'a pas été supprimé!", NamedTextColor.RED));
+                    Bukkit.getLogger().warning("World was not deleted.");
                 }
             }
 
             teams.clear();
             status = SessionStatus.WAITING;
+
+            try {
+                room.clear();
+            } catch (RoomInGameException e) {
+                Bukkit.getLogger().warning("Room was not cleared.");
+            }
         }, 200);
     }
 
