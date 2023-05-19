@@ -5,6 +5,7 @@ import co.aikar.commands.ConditionFailedException;
 import co.aikar.commands.PaperCommandManager;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandCompletion;
+import co.aikar.commands.annotation.Default;
 import co.aikar.commands.annotation.Description;
 import dev.quozul.UHC.Listeners.GameStart;
 import dev.quozul.UHC.Listeners.SpawnChest;
@@ -12,14 +13,16 @@ import dev.quozul.UHC.Main;
 import dev.quozul.UHC.SurvivalGame;
 import dev.quozul.minigame.Party;
 import dev.quozul.minigame.Room;
-import dev.quozul.minigame.Session;
 import dev.quozul.minigame.exceptions.PartyIncompatibleException;
 import dev.quozul.minigame.exceptions.RoomInGameException;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 record PlayerParty(@NotNull Party party) {
@@ -39,16 +42,32 @@ public class RoomCommand extends BaseCommand {
             return room;
         });
 
-        manager.getCommandCompletions().registerCompletion("rooms", handler -> Room
-                .getOpenRooms()
-                .stream()
-                .map(Room::getIdentifier)
-                .collect(Collectors.toSet())
-        );
+        manager.getCommandCompletions().registerCompletion("rooms", handler -> Room.getOpenRooms().stream().map(Room::getIdentifier).collect(Collectors.toSet()));
 
-        new Room(new Session(new SurvivalGame(Main.plugin.getConfig().getInt("game-duration"), Main.plugin.getConfig().getInt("border-radius"))));
-        new Room(new Session(new SurvivalGame(Main.plugin.getConfig().getInt("game-duration"), Main.plugin.getConfig().getInt("border-radius"))));
-        new Room(new Session(new SurvivalGame(Main.plugin.getConfig().getInt("game-duration"), Main.plugin.getConfig().getInt("border-radius"))));
+        Room.fromGame(new SurvivalGame(Main.plugin.getConfig().getInt("game-duration"), Main.plugin.getConfig().getInt("border-radius")));
+        Room.fromGame(new SurvivalGame(Main.plugin.getConfig().getInt("game-duration"), Main.plugin.getConfig().getInt("border-radius")));
+        Room.fromGame(new SurvivalGame(Main.plugin.getConfig().getInt("game-duration"), Main.plugin.getConfig().getInt("border-radius")));
+    }
+
+    @Default
+    void onDefault(Player player) {
+        Component message = Component.text("Liste des salles d'attente :", NamedTextColor.GRAY);
+        List<Component> components = Room.getOpenRooms().stream().map(room -> {
+            int current = room.getPlayerCount();
+
+            return Component.text(room.getIdentifier(), NamedTextColor.GOLD)
+                    .append(Component.text(" : ", NamedTextColor.GRAY))
+                    .append(Component.text(current, NamedTextColor.GRAY))
+                    .append(Component.text(" joueurs", NamedTextColor.GRAY))
+                    .hoverEvent(HoverEvent.showText(Component.text("Clique pour rejoindre")))
+                    .clickEvent(ClickEvent.runCommand(String.format("/room join %s", room.getIdentifier())));
+        }).collect(Collectors.toList());
+
+        for (Component component : components) {
+            message = message.appendNewline().append(component);
+        }
+
+        player.sendMessage(message);
     }
 
     @CommandAlias("join")
@@ -106,12 +125,6 @@ public class RoomCommand extends BaseCommand {
         party.party().sendMessage(Component.text("Salle d'attente quittée.", NamedTextColor.GRAY));
     }
 
-    @CommandAlias("menu")
-    @Description("Ouvre le menu de sélection de salle d'attente")
-    void onMenu(Player player) {
-        fr.pickaria.menu.UtilsKt.open(player, "room");
-    }
-
     @CommandAlias("test")
     @Description("Ouvre le menu de sélection de salle d'attente")
     void onTest(Player player) {
@@ -120,5 +133,25 @@ public class RoomCommand extends BaseCommand {
         player.getInventory().addItem(GameStart.getMap(player.getWorld(), game, GameStart.getMapScale(game)));
 
         SpawnChest.spawnChest(game, player.getLocation());
+    }
+
+    @CommandAlias("prepare")
+    @Description("Force le démarrage d'une session")
+    void onPrepare(PlayerParty party) {
+        Room room = party.party().getRoom();
+        if (room == null) {
+            throw new ConditionFailedException("Ton équipe n'est pas dans une salle d'attente.");
+        }
+        room.getSession().prepare(room);
+    }
+
+    @CommandAlias("unprepare")
+    @Description("Force le démarrage d'une session")
+    void onUnprepare(PlayerParty party) {
+        Room room = party.party().getRoom();
+        if (room == null) {
+            throw new ConditionFailedException("Ton équipe n'est pas dans une salle d'attente.");
+        }
+        room.getSession().unprepare(room);
     }
 }

@@ -104,7 +104,7 @@ public class GameStart implements Listener {
             player.setExp(0);
             player.setLevel(0);
 
-            player.getInventory().addItem(getMap(player.getWorld(), event.getGame(), getMapScale(event.getGame())));
+            player.getInventory().addItem(getMap(world, event.getGame(), getMapScale(event.getGame())));
 
             // Play sound and display title on game start
             player.sendTitle("§6Bonne chance", "", 10, 40, 10);

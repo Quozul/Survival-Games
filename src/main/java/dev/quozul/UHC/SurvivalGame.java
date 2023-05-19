@@ -10,6 +10,7 @@ import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -26,16 +27,20 @@ public class SurvivalGame implements MiniGame, ForwardingAudience, TimedGame, Wo
     public BossBar borderBossBar;
     private World world;
     private Session session;
+    private final RoomRequirements requirements;
 
     /**
      * Returns if there are alive players in the game.
      */
     @Override
     public boolean isEnded() {
+        int alivePlayers = 0;
         for (Team team : session.getTeams()) {
             for (Player player : team.getMembers()) {
                 if (player.getGameMode() == GameMode.SURVIVAL) {
-                    return false;
+                    if (++alivePlayers > 1) {
+                        return false;
+                    }
                 }
             }
         }
@@ -51,6 +56,7 @@ public class SurvivalGame implements MiniGame, ForwardingAudience, TimedGame, Wo
     public SurvivalGame(int duration, int borderRadius) {
         gameDuration = duration * 60 * 20;
         this.borderRadius = borderRadius;
+        requirements = new RoomRequirements(2, 16);
 
         lobbyWorldName = Main.plugin.getConfig().getString("lobby-world-name");
         borderBossBar = BossBar.bossBar(Component.text("Bordure"), 0, BossBar.Color.RED, BossBar.Overlay.PROGRESS);
@@ -76,6 +82,9 @@ public class SurvivalGame implements MiniGame, ForwardingAudience, TimedGame, Wo
             player.setGameMode(GameMode.ADVENTURE);
 
             player.getScoreboardTags().remove("playing");
+            for (PotionEffect potionEffect : player.getActivePotionEffects()) {
+                player.removePotionEffect(potionEffect.getType());
+            }
         }
     }
 
@@ -112,7 +121,7 @@ public class SurvivalGame implements MiniGame, ForwardingAudience, TimedGame, Wo
 
     @Override
     public @NotNull RoomRequirements getRequirements() {
-        return RoomRequirements.zero();
+        return requirements;
     }
 
     @Override

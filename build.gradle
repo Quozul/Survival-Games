@@ -19,9 +19,6 @@ repositories {
     maven {
         url = "https://repo.aikar.co/content/groups/aikar/"
     }
-    maven {
-        url = "https://maven.quozul.dev/snapshots"
-    }
 }
 
 jar {
@@ -39,7 +36,6 @@ dependencies {
     compileOnly "io.papermc.paper:paper-api:1.19.4-R0.1-SNAPSHOT"
     compileOnly "co.aikar:acf-paper:0.5.1-SNAPSHOT"
     implementation "org.jetbrains.kotlin:kotlin-stdlib:1.8.20"
-    implementation "fr.pickaria:bedrock:1.0.19-SNAPSHOT"
 }
 
 def targetJavaVersion = 17
