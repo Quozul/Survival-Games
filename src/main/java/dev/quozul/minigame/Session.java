@@ -27,7 +27,7 @@ import static org.bukkit.Bukkit.getScheduler;
 
 enum SessionStatus {
     WAITING,
-    IN_GAME;
+    IN_GAME
 }
 
 /**
@@ -36,7 +36,7 @@ enum SessionStatus {
 public class Session implements ForwardingAudience {
     private static final int startDelay = Main.plugin.getConfig().getInt("start-delay");
     @NotNull
-    private MiniGame game;
+    private final MiniGame game;
     private int startTask = -1;
     @NotNull
     private SessionStatus status = SessionStatus.WAITING;
@@ -50,7 +50,7 @@ public class Session implements ForwardingAudience {
     @NotNull
     private final Room room;
 
-    public Session(MiniGame game, Room room) {
+    public Session(MiniGame game, @NotNull Room room) {
         this.game = game;
         this.room = room;
         bossBar = BossBar.bossBar(game.displayName(), 0F, BossBar.Color.YELLOW, BossBar.Overlay.NOTCHED_6);
@@ -64,7 +64,7 @@ public class Session implements ForwardingAudience {
         return status != SessionStatus.IN_GAME;
     }
 
-    public void prepare(@NotNull Room room) {
+    public void prepare() {
         isPreparing = true;
         AtomicInteger startTime = new AtomicInteger();
         room.showBossBar(bossBar);
@@ -86,19 +86,19 @@ public class Session implements ForwardingAudience {
 
             if (startTime.get() >= startDelay) {
                 game.onLoad();
-                start(room);
+                start();
                 clearStartTask();
             }
         }, 0, 20);
     }
 
-    public void unprepare(@NotNull Room room) {
+    public void unprepare() {
         clearStartTask();
         room.hideBossBar(bossBar);
         isPreparing = false;
     }
 
-    private void start(@NotNull Room room) {
+    private void start() {
         teams = game.getCompositor().getTeams(room);
 
         if (game instanceof WorldGame) {
@@ -193,11 +193,11 @@ public class Session implements ForwardingAudience {
         return gameTime;
     }
 
-    public BossBar getBossBar() {
+    public @NotNull BossBar getBossBar() {
         return bossBar;
     }
 
-    public SessionStatus getStatus() {
+    public @NotNull SessionStatus getStatus() {
         return status;
     }
 
