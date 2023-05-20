@@ -15,40 +15,26 @@ import java.util.stream.Stream;
 
 public class Room implements ForwardingAudience {
     @NotNull
-    final static private Set<Room> rooms = new HashSet<>();
-
-    public static @Nullable Room getRoom(Player player) {
-        for (Room room : rooms) {
-            if (room.getPlayers().anyMatch(predicate -> predicate == player)) {
-                return room;
-            }
-        }
-        return null;
-    }
+    final static private Map<String, Room> rooms = new HashMap<>();
 
     public static @Nullable Room getRoom(String identifier) {
-        for (Room room : rooms) {
-            if (Objects.equals(room.getIdentifier(), identifier)) {
-                return room;
-            }
-        }
-        return null;
+        return rooms.get(identifier);
     }
 
     public static Set<Room> getOpenRooms() {
-        return rooms.stream()
+        return rooms.values().stream()
                 .filter(room -> room.getSession().isOpen())
                 .collect(Collectors.toSet());
     }
 
     public static @NotNull Map<MiniGame, Set<Room>> getOpenRoomsPerGame() {
-        return rooms.stream()
+        return rooms.values().stream()
                 .filter(room -> room.getSession().isOpen())
                 .collect(Collectors.groupingBy(room -> room.getSession().getGame(), Collectors.toSet()));
     }
 
     private static <T extends MiniGame> long getRoomOfGame(Class<T> gameClass) {
-        return rooms.stream()
+        return rooms.values().stream()
                 .filter(room -> gameClass.isInstance(room.getSession().getGame()))
                 .count();
     }
@@ -60,7 +46,7 @@ public class Room implements ForwardingAudience {
     }
 
     private void register(Room room) {
-        rooms.add(room);
+        rooms.put(room.getIdentifier(), room);
     }
 
     @NotNull
@@ -119,9 +105,9 @@ public class Room implements ForwardingAudience {
 
     void partyUpdated() {
         if (canStart() && !session.isPreparing()) {
-            session.prepare(this);
+            session.prepare();
         } else if (!canStart()) {
-            session.unprepare(this);
+            session.unprepare();
         }
     }
 

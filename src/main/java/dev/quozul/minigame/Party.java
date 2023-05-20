@@ -9,42 +9,30 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Party implements ForwardingAudience {
     @NotNull
-    final static private Set<Party> parties = new HashSet<>();
+    final static private Map<String, Party> parties = new HashMap<>();
 
-    public static @Nullable Party getParty(Player player) {
-        for (Party party : parties) {
-            if (party.hasMember(player)) {
-                return party;
-            }
-        }
-        return null;
-    }
-
-    public static Party getParty(String name) {
-        for (Party party : parties) {
-            if (party.getName().equals(name)) {
-                return party;
-            }
-        }
-        return null;
+    public static @Nullable Party getParty(String name) {
+        return parties.get(name);
     }
 
     public static Set<Party> getPublicParties() {
-        return parties.stream().filter(Party::isPublic).collect(Collectors.toSet());
+        return parties.values().stream().filter(Party::isPublic).collect(Collectors.toSet());
     }
 
     private void register(Party party) {
-        parties.add(party);
+        parties.put(party.getName(), party);
     }
 
     private void unregister(Party party) {
-        parties.remove(party);
+        parties.remove(party.getName());
     }
 
     @NotNull
@@ -114,7 +102,10 @@ public class Party implements ForwardingAudience {
 
         invitedPlayers.remove(player);
 
-        room.partyUpdated();
+        if (room != null) {
+            room.partyUpdated();
+        }
+        sendMessage(player.displayName().append(Component.text(" a rejoint l'équipe.")));
     }
 
     public void leave(Player player) throws RoomInGameException {
@@ -136,6 +127,8 @@ public class Party implements ForwardingAudience {
         if (room != null) {
             room.partyUpdated();
         }
+
+        sendMessage(player.displayName().append(Component.text(" a quitté l'équipe.")));
     }
 
     @Override

@@ -12,6 +12,7 @@ import dev.quozul.UHC.Listeners.SpawnChest;
 import dev.quozul.UHC.Main;
 import dev.quozul.UHC.SurvivalGame;
 import dev.quozul.minigame.Party;
+import dev.quozul.minigame.PlayerData;
 import dev.quozul.minigame.Room;
 import dev.quozul.minigame.exceptions.PartyIncompatibleException;
 import dev.quozul.minigame.exceptions.RoomInGameException;
@@ -26,9 +27,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 record PlayerParty(@NotNull Party party) {
-}
-
-record OptionalPlayerParty(Party party) {
 }
 
 @CommandAlias("room")
@@ -73,14 +71,8 @@ public class RoomCommand extends BaseCommand {
     @CommandAlias("join")
     @Description("Rejoint une salle d'attente avec votre équipe actuelle. Créé une équipe avec 1 joueur si vous n'en avez pas.")
     @CommandCompletion("@rooms")
-    void onJoin(Player player, Room room, OptionalPlayerParty playerParty) {
-        Party party;
-
-        if (playerParty.party() == null) {
-            party = new Party(player, false);
-        } else {
-            party = playerParty.party();
-        }
+    void onJoin(Player player, Room room) {
+        Party party = PlayerData.from(player).getParty();
 
         if (party.getOwner() == player) {
             if (party.getRoom() != null) {
@@ -110,11 +102,13 @@ public class RoomCommand extends BaseCommand {
 
     @CommandAlias("leave")
     @Description("Quitte la salle d'attente actuelle.")
-    void onLeave(PlayerParty party) {
+    void onLeave(Player player) {
+        Party party = PlayerData.from(player).getParty();
+
         try {
-            Room room = party.party().getRoom();
+            Room room = party.getRoom();
             if (room != null) {
-                room.removeParty(party.party());
+                room.removeParty(party);
             } else {
                 throw new ConditionFailedException("Ton équipe n'est pas dans une salle d'attente.");
             }
@@ -122,7 +116,7 @@ public class RoomCommand extends BaseCommand {
             throw new ConditionFailedException("L'équipe est dans une partie en cours.");
         }
 
-        party.party().sendMessage(Component.text("Salle d'attente quittée.", NamedTextColor.GRAY));
+        party.sendMessage(Component.text("Salle d'attente quittée.", NamedTextColor.GRAY));
     }
 
     @CommandAlias("test")
@@ -137,21 +131,25 @@ public class RoomCommand extends BaseCommand {
 
     @CommandAlias("prepare")
     @Description("Force le démarrage d'une session")
-    void onPrepare(PlayerParty party) {
-        Room room = party.party().getRoom();
+    void onPrepare(Player player) {
+        Party party = PlayerData.from(player).getParty();
+
+        Room room = party.getRoom();
         if (room == null) {
             throw new ConditionFailedException("Ton équipe n'est pas dans une salle d'attente.");
         }
-        room.getSession().prepare(room);
+        room.getSession().prepare();
     }
 
     @CommandAlias("unprepare")
     @Description("Force le démarrage d'une session")
-    void onUnprepare(PlayerParty party) {
-        Room room = party.party().getRoom();
+    void onUnprepare(Player player) {
+        Party party = PlayerData.from(player).getParty();
+
+        Room room = party.getRoom();
         if (room == null) {
             throw new ConditionFailedException("Ton équipe n'est pas dans une salle d'attente.");
         }
-        room.getSession().unprepare(room);
+        room.getSession().unprepare();
     }
 }

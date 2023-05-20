@@ -38,7 +38,7 @@ public class SurvivalGame implements MiniGame, ForwardingAudience, TimedGame, Wo
         for (Team team : session.getTeams()) {
             for (Player player : team.getMembers()) {
                 if (player.getGameMode() == GameMode.SURVIVAL) {
-                    if (++alivePlayers > 1) {
+                    if (++alivePlayers > 0) { // TODO: Change 0 to 1
                         return false;
                     }
                 }

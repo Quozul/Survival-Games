@@ -2,6 +2,7 @@ package dev.quozul.UHC.Listeners;
 
 import dev.quozul.UHC.Main;
 import dev.quozul.minigame.Party;
+import dev.quozul.minigame.PlayerData;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
@@ -93,10 +94,8 @@ public class GameListeners implements Listener {
             player.getScoreboardTags().remove("playing");
         }
 
-        Party party = Party.getParty(player);
-        if (party != null) {
-            party.forceLeave(player);
-        }
+        Party party = PlayerData.from(player).getParty();
+        party.forceLeave(player);
     }
 
     @EventHandler
