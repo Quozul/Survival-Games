@@ -35,7 +35,7 @@ public class CustomRenderer extends MapRenderer {
         WorldBorder worldBorder = game.getWorld().getWorldBorder();
         cursorCollection.addCursor(makeCursor(worldBorder.getCenter(), map, MapCursor.Type.RED_X, true));
 
-        int borderSize = blockSize((int) worldBorder.getSize(), map);
+        int borderSize = blockSize((int) worldBorder.getSize() / 2, map);
         int centerX = 64;
         int centerZ = 64;
 

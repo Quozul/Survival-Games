@@ -3,8 +3,8 @@ package dev.quozul.UHC;
 import co.aikar.commands.PaperCommandManager;
 import dev.quozul.UHC.Commands.PartyCommand;
 import dev.quozul.UHC.Commands.RoomCommand;
-import dev.quozul.UHC.Commands.SelectTeam;
 import dev.quozul.UHC.Listeners.*;
+import dev.quozul.minigame.LobbyListener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Locale;
@@ -28,7 +28,8 @@ public class Main extends JavaPlugin {
         manager.registerCommand(new RoomCommand(manager));
 
         // Register events
-        getServer().getPluginManager().registerEvents(new SelectTeam(), this);
+        getServer().getPluginManager().registerEvents(new LobbyListener(), this);
+
         getServer().getPluginManager().registerEvents(new GameListeners(), this);
         getServer().getPluginManager().registerEvents(new GameStart(), this);
         getServer().getPluginManager().registerEvents(new GameEnd(), this);

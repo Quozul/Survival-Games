@@ -45,8 +45,8 @@ public class Room implements ForwardingAudience {
         room.setSession(session);
     }
 
-    private void register(Room room) {
-        rooms.put(room.getIdentifier(), room);
+    private void register() {
+        rooms.put(this.getIdentifier(), this);
     }
 
     @NotNull
@@ -58,12 +58,12 @@ public class Room implements ForwardingAudience {
 
     public Room() {
         this.identifier = UUID.randomUUID().toString();
-        register(this);
     }
 
     public void setSession(@NotNull Session session) {
         this.session = session;
         identifier = String.format("%s-%d", session.getGame().getIdentifier(), getRoomOfGame(session.getGame().getClass()) + 1);
+        register();
     }
 
     public @NotNull String getIdentifier() {

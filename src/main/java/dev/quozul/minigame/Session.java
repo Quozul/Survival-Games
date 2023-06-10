@@ -15,6 +15,7 @@ import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
@@ -22,6 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static org.bukkit.Bukkit.getScheduler;
 
@@ -60,6 +62,9 @@ public class Session implements ForwardingAudience {
         return game;
     }
 
+    /**
+     * Returns true if the Session is not currently in a game therefore allowing parties to leave the room.
+     */
     public boolean isOpen() {
         return status != SessionStatus.IN_GAME;
     }
@@ -187,6 +192,10 @@ public class Session implements ForwardingAudience {
 
     public @NotNull Set<Team> getTeams() {
         return teams;
+    }
+
+    public @NotNull Set<Player> getPlayers() {
+        return teams.stream().flatMap(team -> team.getMembers().stream()).collect(Collectors.toSet());
     }
 
     public int getElapsedTime() {

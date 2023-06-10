@@ -149,6 +149,20 @@ public class PartyCommand extends BaseCommand {
         }
     }
 
+    @Subcommand("leave")
+    @Description("Quitte votre équipe actuelle.")
+    void onLeave(Player player) {
+        try {
+            PlayerData playerData = PlayerData.from(player);
+            Party party = new Party(player, false);
+            playerData.setParty(party);
+        } catch (RoomInGameException e) {
+            throw new ConditionFailedException("Tu ne peux pas rejoindre une équipe qui est dans une partie.");
+        } catch (PartyIsPrivate e) {
+            throw new ConditionFailedException("Cette équipe est privée.");
+        }
+    }
+
     @HelpCommand
     void doHelp(CommandHelp help) {
         help.showHelp();

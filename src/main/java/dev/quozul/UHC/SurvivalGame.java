@@ -35,12 +35,11 @@ public class SurvivalGame implements MiniGame, ForwardingAudience, TimedGame, Wo
     @Override
     public boolean isEnded() {
         int alivePlayers = 0;
-        for (Team team : session.getTeams()) {
-            for (Player player : team.getMembers()) {
-                if (player.getGameMode() == GameMode.SURVIVAL) {
-                    if (++alivePlayers > 0) { // TODO: Change 0 to 1
-                        return false;
-                    }
+        for (Player player : session.getPlayers()) {
+            GameData data = PlayerData.from(player).getGameData();
+            if (data instanceof SurvivalGameData && ((SurvivalGameData) data).isAlive()) {
+                if (++alivePlayers > 0) { // TODO: Change 0 to 1
+                    return false;
                 }
             }
         }
@@ -81,7 +80,6 @@ public class SurvivalGame implements MiniGame, ForwardingAudience, TimedGame, Wo
             player.teleport(loc);
             player.setGameMode(GameMode.ADVENTURE);
 
-            player.getScoreboardTags().remove("playing");
             for (PotionEffect potionEffect : player.getActivePotionEffects()) {
                 player.removePotionEffect(potionEffect.getType());
             }

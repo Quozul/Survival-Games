@@ -8,7 +8,6 @@ import co.aikar.commands.annotation.CommandCompletion;
 import co.aikar.commands.annotation.Default;
 import co.aikar.commands.annotation.Description;
 import dev.quozul.UHC.Listeners.GameStart;
-import dev.quozul.UHC.Listeners.SpawnChest;
 import dev.quozul.UHC.Main;
 import dev.quozul.UHC.SurvivalGame;
 import dev.quozul.minigame.Party;
@@ -122,11 +121,11 @@ public class RoomCommand extends BaseCommand {
     @CommandAlias("test")
     @Description("Ouvre le menu de sélection de salle d'attente")
     void onTest(Player player) {
-        SurvivalGame game = new SurvivalGame(100000, 1024);
+        SurvivalGame game = new SurvivalGame(100000, 2048);
         game.setWorld(player.getWorld());
-        player.getInventory().addItem(GameStart.getMap(player.getWorld(), game, GameStart.getMapScale(game)));
+        player.getInventory().addItem(GameStart.getMap(game.getWorld(), game, GameStart.getMapScale(game)));
 
-        SpawnChest.spawnChest(game, player.getLocation());
+//        SpawnChest.spawnChest(game, player.getLocation());
     }
 
     @CommandAlias("prepare")
