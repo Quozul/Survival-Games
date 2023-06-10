@@ -1,27 +1,17 @@
 package dev.quozul.UHC.Listeners;
 
-import dev.quozul.UHC.Main;
-import dev.quozul.minigame.Party;
+import dev.quozul.UHC.SurvivalGameData;
 import dev.quozul.minigame.PlayerData;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerPortalEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.potion.PotionEffectType;
 
 public class GameListeners implements Listener {
@@ -30,10 +20,12 @@ public class GameListeners implements Listener {
     void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
 
-        // Remove slow falling when player reach the ground
-        if (player.getScoreboardTags().contains("spawning") && (player.isOnGround() || player.isInWater())) {
-            player.removePotionEffect(PotionEffectType.SLOW_FALLING);
-            player.removeScoreboardTag("spawning");
+        if (PlayerData.from(player).getGameData() instanceof SurvivalGameData data) {
+            // Remove slow falling when player reach the ground
+            if (data.isSpawning() && (player.isOnGround() || player.isInWater())) {
+                player.removePotionEffect(PotionEffectType.SLOW_FALLING);
+                data.setAlive();
+            }
         }
     }
 
@@ -41,7 +33,7 @@ public class GameListeners implements Listener {
     void onPlayerDie(PlayerDeathEvent event) {
         Player player = event.getEntity();
 
-        if (player.getScoreboardTags().contains("playing")) {
+        if (PlayerData.from(player).getGameData() instanceof SurvivalGameData data && data.isAlive()) {
             event.setCancelled(true);
 
             org.bukkit.Sound deathSound = event.getDeathSound();
@@ -59,7 +51,7 @@ public class GameListeners implements Listener {
             player.setHealth(20);
             player.setGameMode(GameMode.SPECTATOR);
 
-            player.getScoreboardTags().add("died");
+            data.setDead();
 
             Player killer = player.getKiller();
             if (killer != null) {
@@ -69,51 +61,6 @@ public class GameListeners implements Listener {
 
                 player.sendMessage(message);
             }
-        }
-    }
-
-    @EventHandler
-    void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-
-        player.setGameMode(GameMode.ADVENTURE);
-
-        // Teleport player to default world
-        World world = Bukkit.getWorld(Main.plugin.getConfig().getString("lobby-world-name"));
-        Location loc = world.getSpawnLocation();
-
-        player.teleport(loc);
-    }
-
-    @EventHandler
-    void onPlayerLeave(PlayerQuitEvent event) {
-        Player player = event.getPlayer();
-
-        if (player.getScoreboardTags().contains("playing")) {
-            player.setHealth(0);
-            player.getScoreboardTags().remove("playing");
-        }
-
-        Party party = PlayerData.from(player).getParty();
-        party.forceLeave(player);
-    }
-
-    @EventHandler
-    void onPlayerPortal(PlayerPortalEvent event) {
-        event.setCancelled(true);
-    }
-
-    @EventHandler
-    void onPlayerDamage(EntityDamageEvent event) {
-        if (event.getEntityType() == EntityType.PLAYER && ((Player) event.getEntity()).getGameMode() == GameMode.ADVENTURE) {
-            event.setCancelled(true);
-        }
-    }
-
-    @EventHandler
-    void onPlayerHunger(FoodLevelChangeEvent event) {
-        if (event.getEntity().getGameMode() == GameMode.ADVENTURE) {
-            event.setCancelled(true);
         }
     }
 }

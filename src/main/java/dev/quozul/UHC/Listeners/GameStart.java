@@ -3,6 +3,8 @@ package dev.quozul.UHC.Listeners;
 import dev.quozul.UHC.CustomRenderer;
 import dev.quozul.UHC.Events.SurvivalGameStartEvent;
 import dev.quozul.UHC.SurvivalGame;
+import dev.quozul.UHC.SurvivalGameData;
+import dev.quozul.minigame.PlayerData;
 import dev.quozul.minigame.Team;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -103,6 +105,7 @@ public class GameStart implements Listener {
             player.getInventory().clear();
             player.setExp(0);
             player.setLevel(0);
+            player.setFireTicks(0);
 
             player.getInventory().addItem(getMap(world, event.getGame(), getMapScale(event.getGame())));
 
@@ -114,9 +117,7 @@ public class GameStart implements Listener {
             player.setGameMode(GameMode.SURVIVAL);
 
             // Set player's tags
-            player.addScoreboardTag("spawning");
-            player.addScoreboardTag("playing");
-            player.removeScoreboardTag("died");
+            PlayerData.from(player).setGameData(new SurvivalGameData());
         }
     }
 }

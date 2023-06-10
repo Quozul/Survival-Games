@@ -1,6 +1,8 @@
 package dev.quozul.UHC.Listeners;
 
 import dev.quozul.UHC.Events.SurvivalGameEndEvent;
+import dev.quozul.UHC.SurvivalGameData;
+import dev.quozul.minigame.PlayerData;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
@@ -25,12 +27,12 @@ public class GameEnd implements Listener {
 
         for (Player player : event.getGame().getPlayers()) {
             player.setGameMode(GameMode.SPECTATOR);
+            player.getInventory().clear();
 
             // Get winner
-            if (!player.getScoreboardTags().contains("died") && player.getScoreboardTags().contains("playing"))
+            if (PlayerData.from(player).getGameData() instanceof SurvivalGameData data && data.isAlive()) {
                 winner = player;
-
-            player.getInventory().clear();
+            }
         }
 
         if (winner != null) {

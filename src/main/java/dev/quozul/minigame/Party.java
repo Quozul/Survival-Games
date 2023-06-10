@@ -87,7 +87,11 @@ public class Party implements ForwardingAudience {
         invitedPlayers.add(player);
     }
 
-    public void join(Player player) throws RoomInGameException, PartyIsPrivate {
+    public void addPlayer(Player player) throws RoomInGameException, PartyIsPrivate {
+        if (!members.contains(player)) {
+            return;
+        }
+
         if (room != null && !room.getSession().isOpen()) {
             throw new RoomInGameException();
         }
@@ -108,15 +112,15 @@ public class Party implements ForwardingAudience {
         sendMessage(player.displayName().append(Component.text(" a rejoint l'équipe.")));
     }
 
-    public void leave(Player player) throws RoomInGameException {
+    public void removePlayer(Player player) throws RoomInGameException {
         if (room != null && !room.getSession().isOpen()) {
             throw new RoomInGameException();
         }
 
-        forceLeave(player);
+        forceRemovePlayer(player);
     }
 
-    public void forceLeave(Player player) {
+    public void forceRemovePlayer(Player player) {
         members.remove(player);
 
         // Remove party if empty
