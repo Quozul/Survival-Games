@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'org.jetbrains.kotlin.jvm' version '1.8.20'
+    id 'xyz.jpenilla.run-paper' version "2.3.0"
 }
 
 group = 'dev.quozul'
@@ -9,21 +9,24 @@ version = '0.3-SNAPSHOT'
 repositories {
     mavenCentral()
     maven {
-        name = "papermc-repo"
         url = "https://repo.papermc.io/repository/maven-public/"
     }
     maven {
-        name = "sonatype"
-        url = "https://oss.sonatype.org/content/groups/public/"
+        url = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
     }
     maven {
         url = "https://repo.aikar.co/content/groups/aikar/"
     }
 }
 
+dependencies {
+    compileOnly "io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT"
+    compileOnly "co.aikar:acf-paper:0.5.1-SNAPSHOT"
+}
+
 jar {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
-    destinationDirectory = file("server/plugins")
+    destinationDirectory = file("run/plugins")
     manifest {
         attributes["Main-Class"] = "dev.quozul.UHC.Main"
     }
@@ -32,25 +35,13 @@ jar {
     }
 }
 
-dependencies {
-    compileOnly "io.papermc.paper:paper-api:1.20-R0.1-SNAPSHOT"
-    compileOnly "co.aikar:acf-paper:0.5.1-SNAPSHOT"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.8.20"
-}
-
-def targetJavaVersion = 17
+def targetJavaVersion = 21
 java {
     def javaVersion = JavaVersion.toVersion(targetJavaVersion)
     sourceCompatibility = javaVersion
     targetCompatibility = javaVersion
     if (JavaVersion.current() < javaVersion) {
         toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
-    }
-}
-
-compileKotlin {
-    kotlinOptions {
-        jvmTarget = '17'
     }
 }
 
@@ -62,6 +53,10 @@ tasks.withType(JavaCompile).configureEach {
     if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
         options.release = targetJavaVersion
     }
+}
+
+tasks.runServer {
+    version("1.20.6")
 }
 
 processResources {

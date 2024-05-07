@@ -24,11 +24,11 @@ public class CustomRenderer extends MapRenderer {
         MapCursorCollection cursorCollection = new MapCursorCollection();
 
         // Player cursor
-        cursorCollection.addCursor(makeCursor(player.getLocation(), map, MapCursor.Type.WHITE_POINTER, true));
+        cursorCollection.addCursor(makeCursor(player.getLocation(), map, MapCursor.Type.PLAYER, true)); // White pointer?
 
         // Chest cursors
         for (Location location : game.getChests()) {
-            cursorCollection.addCursor(makeCursor(location, map, MapCursor.Type.WHITE_CROSS, true));
+            cursorCollection.addCursor(makeCursor(location, map, MapCursor.Type.TARGET_X, true)); // White cross?
         }
 
         // World border
